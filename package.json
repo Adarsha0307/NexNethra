@@ -1,0 +1,19 @@
+{
+  "name": "nexnetra",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:all": "node dev.cjs",
+    "setup-ssl": "node scripts/setup-ssl.mjs",
+    "migrate": "node backend/src/utils/migrate.js",
+    "build": "npm run build --workspace frontend",
+    "start": "npm run start --workspace backend",
+    "test": "echo \"No tests configured yet\" && exit 0"
+  }
+}
