@@ -1,11 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiGet, apiPost, apiPut, apiDelete } from '../api/client';
 
 function SettingsPage() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('profile');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState({});
+
+  function handleLogout() {
+    localStorage.removeItem('nexnetra_token');
+    localStorage.removeItem('nexnetra_refresh');
+    navigate('/dashboard');
+    window.location.reload();
+  }
 
   const setLoadingState = useCallback((key, val) => {
     setLoading(prev => ({ ...prev, [key]: val }));
@@ -38,6 +47,7 @@ function SettingsPage() {
     { id: 'health', label: 'Health Checks' },
     { id: 'export', label: 'Export' },
     { id: 'danger', label: 'Danger Zone' },
+    { id: 'logout', label: 'Logout' },
   ];
 
   return (
@@ -56,7 +66,7 @@ function SettingsPage() {
       <div className="settings-layout">
         <nav className="settings-nav">
           {sections.map(s => (
-            <button key={s.id} className={`sidebar-link ${activeSection === s.id ? 'active' : ''}`} onClick={() => setActiveSection(s.id)}>
+            <button key={s.id} className={`sidebar-link ${activeSection === s.id ? 'active' : ''}`} style={s.id === 'logout' ? { color: '#ff6b6b' } : undefined} onClick={() => s.id === 'logout' ? handleLogout() : setActiveSection(s.id)}>
               {s.label}
             </button>
           ))}
