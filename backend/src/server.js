@@ -66,17 +66,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Nexnetra backend is running' });
 });
 
-// TEMPORARY: clear all data
-import { query } from './utils/db.js';
-app.get('/api/reset', async (req, res) => {
-  try {
-    await query('TRUNCATE TABLE activities, refresh_tokens, api_keys, notification_preferences, quiet_hours, ip_blocklist, team_members, user_sessions, oauth_provider_configs, auto_remediation_config, incident_auto_close_config, rate_limit_configs, keyboard_shortcuts, url_scans, incidents, users RESTART IDENTITY CASCADE');
-    res.json({ message: 'All data cleared.' });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 app.use('/api/auth', authRoutes);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/analyze', analyzerRoutes);
