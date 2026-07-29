@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { getApiUrl } from '../api';
 import { SignInPage } from '../components/ui/sign-in';
 
+const HERO_IMAGE = '/hero-bg.jpg';
+
 const testimonials = [
   
  
@@ -210,7 +212,7 @@ function AuthPage({ onAuth }) {
 
   return (
     <SignInPage
-      heroImageSrc="https://i.postimg.cc/R0zCv6gH/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-(1).jpg"
+      heroImageSrc={HERO_IMAGE}
       testimonials={testimonials}
       error={message}
       onSignIn={handleSignIn}
