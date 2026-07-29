@@ -210,7 +210,7 @@ function AuthPage({ onAuth }) {
 
   return (
     <SignInPage
-      heroImageSrc="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1080&q=80"
+      heroImageSrc="https://i.postimg.cc/R0zCv6gH/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-(1).jpg"
       testimonials={testimonials}
       error={message}
       onSignIn={handleSignIn}

@@ -54,7 +54,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
             <div className="animate-element animate-delay-50 flex items-center gap-3">
-              <img className="w-9 h-9" src="https://i.postimg.cc/XG3VrvGc/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-(1).jpg" alt="Nexnetra logo" />
+              <img className="w-9 h-9" src="https://i.postimg.cc/R0zCv6gH/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-(1).jpg" alt="Nexnetra logo" />
               <span className="text-lg font-bold text-foreground">Nexnetra</span>
             </div>
             <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-semibold leading-tight">{title}</h1>
