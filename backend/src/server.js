@@ -78,11 +78,13 @@ app.get('/api/profile', requireAuth, (req, res) => {
   res.json({ message: 'Authenticated profile access', user: req.user });
 });
 
-// Serve built frontend
-app.use(express.static(frontendDist));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendDist, 'index.html'));
-});
+// Serve built frontend if available
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 async function start() {
   await migrate();
