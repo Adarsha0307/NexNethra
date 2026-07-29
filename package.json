@@ -15,5 +15,8 @@
     "build": "npm run build --workspace frontend && rm -rf dist && cp -r frontend/dist dist",
     "start": "npm run start --workspace backend",
     "test": "echo \"No tests configured yet\" && exit 0"
+  },
+  "dependencies": {
+    "motion": "^12.43.0"
   }
 }

@@ -5,6 +5,7 @@ import AssistantPage from '../pages/AssistantPage';
 import AnalyzerPage from '../pages/AnalyzerPage';
 import IncidentsPage from '../pages/IncidentsPage';
 import SettingsPage from '../pages/SettingsPage';
+import { FloatingAiAssistant } from '../components/ui/glowing-ai-chat-assistant';
 
 function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ function AppRoutes() {
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </main>
+      <FloatingAiAssistant />
     </div>
   );
 }

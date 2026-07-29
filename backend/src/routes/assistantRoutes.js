@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/chat', async (req, res) => {
   const { message } = req.body;
 
-  if (!message || typeof message !== 'string' || message.trim().length < 3) {
+  if (!message || typeof message !== 'string' || message.trim().length < 1) {
     return res.status(400).json({ message: 'A message is required' });
   }
 
