@@ -16,6 +16,12 @@ database/data.json
 # Build output
 frontend/dist/
 backend/dist/
+dist/
+
+# Archives
+*.tar.gz
+*.7z
+*.zip
 
 # Logs
 *.log
