@@ -33,7 +33,7 @@ function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-brand">
         <div className="brand-row">
-          <img className="brand-logo" src="https://i.postimg.cc/XG3VrvGc/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-(1).jpg" alt="Nexnetra logo" />
+          <img className="brand-logo" src="https://i.ibb.co/zY7bK96/Save-Clip-App-671036031-18087516530017257-3201789942173328-n-1.jpg" alt="Nexnetra logo" />
           <div>
             <h2>Nexnetra</h2>
             <span className="sidebar-sub">Security Hub</span>
