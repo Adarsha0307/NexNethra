@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import NeuralBackground from './flow-field-background';
 
 export interface Testimonial {
   avatarSrc: string;
@@ -103,7 +104,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
       {heroImageSrc && (
         <section className="hidden md:block flex-1 relative p-4">
-          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center" style={{ backgroundImage: `url(${heroImageSrc})` }}></div>
+          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl overflow-hidden">
+            <NeuralBackground color="#818cf8" trailOpacity={0.12} particleCount={500} speed={0.6} />
+          </div>
           {testimonials.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center">
               <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
