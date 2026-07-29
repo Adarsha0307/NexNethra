@@ -87,26 +87,13 @@ app.get('*', (req, res) => {
 async function start() {
   await migrate();
 
-  // — HTTP server: serves API (dev); redirects to HTTPS (production) —
-  const isProduction = process.env.NODE_ENV === 'production';
+  // — HTTP server: serves API on Render (SSL handled by platform) —
+  http.createServer(app).listen(requestedPort, () => {
+    console.log(`[HTTP]  Nexnetra backend listening on port ${requestedPort}`);
+  });
+
+  // — Optional HTTPS server for local SSL —
   const httpsPort = Number(process.env.SSL_PORT) || 4443;
-
-  if (isProduction) {
-    const redirectApp = express();
-    redirectApp.use((req, res) => {
-      const host = req.headers.host ? req.headers.host.split(':')[0] : req.hostname;
-      res.redirect(301, `https://${host}:${httpsPort}${req.originalUrl}`);
-    });
-    http.createServer(redirectApp).listen(requestedPort, () => {
-      console.log(`[HTTP]  Redirecting → https://localhost:${httpsPort}`);
-    });
-  } else {
-    http.createServer(app).listen(requestedPort, () => {
-      console.log(`[HTTP]  Nexnetra backend listening on port ${requestedPort}`);
-    });
-  }
-
-  // — HTTPS server —
   try {
     if (fs.existsSync(sslCertPath) && fs.existsSync(sslKeyPath)) {
       const sslOptions = {
