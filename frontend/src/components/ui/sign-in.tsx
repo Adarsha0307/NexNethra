@@ -53,6 +53,19 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       <section className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
+            <div className="animate-element animate-delay-50 flex items-center gap-3">
+              <svg className="w-9 h-9" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 4L6 10v8c0 8.8 5.6 17 14 20 8.4-3 14-11.2 14-20v-8L20 4z" fill="url(#logoGrad)" stroke="#4fd1c5" strokeWidth="1.5"/>
+                <path d="M16 20l3 3 5-6" stroke="#050a11" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <defs>
+                  <linearGradient id="logoGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2b7fff"/>
+                    <stop offset="100%" stopColor="#4fd1c5"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="text-lg font-bold text-foreground">Nexnetra</span>
+            </div>
             <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-semibold leading-tight">{title}</h1>
             <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
 
