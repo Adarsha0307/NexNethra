@@ -22,7 +22,8 @@ function AssistantPage() {
 
     try {
       const data = await apiPost('/api/assistant/chat', { message: userMsg.text });
-      setMessages(prev => [...prev, { role: 'assistant', text: data.reply || data.message || 'No response.' }]);
+      const replyText = typeof data.reply === 'string' ? data.reply : data.reply?.summary || data.message || 'No response.';
+      setMessages(prev => [...prev, { role: 'assistant', text: replyText }]);
     } catch (err) {
       setError(err.message);
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, I encountered an error. Please try again.' }]);
