@@ -50,8 +50,11 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw]">
-      <section className="flex-1 flex items-center justify-center p-8">
+    <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw] relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <NeuralBackground color="#818cf8" trailOpacity={0.08} particleCount={400} speed={0.4} />
+      </div>
+      <section className="flex-1 flex items-center justify-center p-8 relative z-10">
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
             <div className="animate-element animate-delay-50 flex items-center gap-3">
@@ -103,10 +106,8 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       </section>
 
       {heroImageSrc && (
-        <section className="hidden md:block flex-1 relative p-4">
-          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl overflow-hidden">
-            <NeuralBackground color="#818cf8" trailOpacity={0.12} particleCount={500} speed={0.6} />
-          </div>
+        <section className="hidden md:block flex-1 relative p-4 z-10">
+          <div className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center" style={{ backgroundImage: `url(${heroImageSrc})` }}></div>
           {testimonials.length > 0 && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center">
               <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
