@@ -12,7 +12,7 @@
     "dev:all": "node dev.cjs",
     "setup-ssl": "node scripts/setup-ssl.mjs",
     "migrate": "node backend/src/utils/migrate.js",
-    "build": "npm run build --workspace frontend",
+    "build": "npm run build --workspace frontend && rm -rf dist && cp -r frontend/dist dist",
     "start": "npm run start --workspace backend",
     "test": "echo \"No tests configured yet\" && exit 0"
   }
