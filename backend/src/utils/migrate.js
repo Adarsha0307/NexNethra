@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS incidents (
 
 CREATE TABLE IF NOT EXISTS activities (
   id          TEXT PRIMARY KEY,
+  user_id     TEXT REFERENCES users(id),
   type        TEXT NOT NULL,
   title       TEXT NOT NULL,
   description TEXT,
@@ -204,6 +205,7 @@ CREATE INDEX IF NOT EXISTS idx_url_scans_expires ON url_scans(expires_at);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT NOT NULL DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'dark';
+ALTER TABLE activities ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id);
 `;
 
 export async function runMigrations() {

@@ -43,21 +43,26 @@ export async function getIncidents() {
   return rows;
 }
 
-export async function addActivity(type, title, description) {
+export async function addActivity(type, title, description, userId) {
   const id = Date.now().toString() + Math.random().toString(36).substring(2, 7);
   const timestamp = new Date().toISOString();
   const { rows } = await query(
-    `INSERT INTO activities (id, type, title, description, timestamp)
-     VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [id, type, title, description || null, timestamp]
+    `INSERT INTO activities (id, user_id, type, title, description, timestamp)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [id, userId || null, type, title, description || null, timestamp]
   );
   return rows[0];
 }
 
-export async function getActivities(limit = 20) {
-  const { rows } = await query(
-    'SELECT * FROM activities ORDER BY timestamp DESC LIMIT $1',
-    [limit]
-  );
+export async function getActivities(limit = 20, userId = null) {
+  let sql, params;
+  if (userId) {
+    sql = 'SELECT * FROM activities WHERE user_id = $1 ORDER BY timestamp DESC LIMIT $2';
+    params = [userId, limit];
+  } else {
+    sql = 'SELECT * FROM activities ORDER BY timestamp DESC LIMIT $1';
+    params = [limit];
+  }
+  const { rows } = await query(sql, params);
   return rows;
 }

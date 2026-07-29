@@ -1,12 +1,13 @@
 import express from 'express';
 import { getActivities, addActivity } from '../utils/store.js';
+import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = express.Router();
 
-// Retrieve all recent activities
-router.get('/activity', async (req, res) => {
+// Retrieve recent activities for the authenticated user
+router.get('/activity', requireAuth, async (req, res) => {
   try {
-    const activities = await getActivities();
+    const activities = await getActivities(20, req.user.userId);
     return res.json(activities);
   } catch (error) {
     console.error('Error fetching activities:', error);
@@ -15,7 +16,7 @@ router.get('/activity', async (req, res) => {
 });
 
 // Run a real-time on-demand system security scan
-router.post('/scan', async (req, res) => {
+router.post('/scan', requireAuth, async (req, res) => {
   try {
     const scanId = Date.now().toString();
     const findings = [
@@ -30,7 +31,7 @@ router.post('/scan', async (req, res) => {
     // Pick 3 random findings to add
     const shuffled = findings.sort(() => Math.random() - 0.5).slice(0, 3);
     for (const finding of shuffled) {
-      await addActivity('scan', finding.title, finding.detail);
+      await addActivity('scan', finding.title, finding.detail, req.user.userId);
     }
 
     const secure = shuffled.every((f) => !f.detail.includes('flagged') && !f.detail.includes('exposed') && !f.detail.includes('suspicious') && !f.detail.includes('tampering'));
