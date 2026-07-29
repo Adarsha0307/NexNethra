@@ -31,6 +31,7 @@
   --input: rgba(255, 255, 255, 0.1);
   --ring: #2b7fff;
   --radius: 1rem;
+  --button-ripple-color: oklch(0.985 0 0 / 0.3);
 }
 
 @keyframes fadeSlideIn {
@@ -326,6 +327,32 @@ h1 {
   line-height: 1.6;
 }
 
+/* Button glow effect for all button-like elements */
+button:not(.no-glow):not(.floating-ai-button):not(.sidebar-link):not(.chat-bubble *):not(.feed-list *) {
+  position: relative;
+  overflow: hidden;
+}
+
+button:not(.no-glow):not(.floating-ai-button):not(.sidebar-link):not(.chat-bubble *):not(.feed-list *)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(43, 127, 255, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+button:not(.no-glow):not(.floating-ai-button):not(.sidebar-link):not(.chat-bubble *):not(.feed-list *):hover::after {
+  opacity: 1;
+}
+
+button:not(.no-glow):not(.floating-ai-button):not(.sidebar-link):not(.chat-bubble *):not(.feed-list *) > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Buttons */
 .primary-btn {
   border: none;
@@ -342,11 +369,27 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.primary-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(43, 127, 255, 0.3), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.primary-btn:hover:not(:disabled)::after {
+  opacity: 1;
 }
 
 .primary-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(79, 209, 197, 0.35);
+  box-shadow: 0 6px 20px rgba(79, 209, 197, 0.35), 0 0 30px rgba(43, 127, 255, 0.2);
 }
 
 .primary-btn:active:not(:disabled) {
@@ -369,6 +412,22 @@ h1 {
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.secondary-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(43, 127, 255, 0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.secondary-btn:hover::after {
+  opacity: 1;
 }
 
 .secondary-btn:hover {
@@ -620,6 +679,22 @@ h2 {
   font-weight: 600;
   font-size: 0.85rem;
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(43, 127, 255, 0.15), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.action-btn:hover::after {
+  opacity: 1;
 }
 
 .action-btn:hover {
