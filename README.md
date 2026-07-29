@@ -1,4 +1,4 @@
-# Nexnetra
+# Nexnetra url -- nexnethra.vercel.app
 
 Nexnetra is an AI-powered cybersecurity platform for URL scanning, email analysis, password strength evaluation, incident reporting, and threat intelligence — all with a modern dashboard and AI assistant guidance.
 
