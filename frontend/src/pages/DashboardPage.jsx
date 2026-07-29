@@ -64,8 +64,11 @@ function DashboardPage() {
           <div className="threat-list">
             {threats.slice(0, 5).map((t) => (
               <div key={t.id} className="threat-item">
-                <strong>{t.title}</strong>
-                <span>{t.severity} — {t.source}</span>
+                <div className="threat-item-body">
+                  <span className="threat-item-title">{t.title}</span>
+                  <span className="threat-item-source">{t.source}</span>
+                </div>
+                <span className={`severity-badge ${(t.severity || '').toLowerCase()}`}>{t.severity}</span>
               </div>
             ))}
           </div>
