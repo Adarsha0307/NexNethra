@@ -19,7 +19,7 @@ router.get('/activity', requireAuth, async (req, res) => {
 router.post('/scan', requireAuth, async (req, res) => {
   try {
     const scanId = Date.now().toString();
-    const findings = [
+    const findingTemplates = [
       { title: 'Process Audit', detail: `Scanned ${Math.floor(Math.random() * 80 + 40)} running processes. ${Math.random() > 0.7 ? '1 unknown process flagged for review.' : 'All processes validated as legitimate.'}` },
       { title: 'Port Scan', detail: `Checked ${Math.floor(Math.random() * 30 + 10)} network ports. ${Math.random() > 0.8 ? 'Port 445 exposed — verify SMB configuration.' : 'No unauthorized listening services detected.'}` },
       { title: 'Environment Check', detail: `Validated ${Math.floor(Math.random() * 15 + 8)} environment variables. ${Math.random() > 0.75 ? '1 variable contains suspicious pattern.' : 'All variables meet security standards.'}` },
@@ -29,7 +29,7 @@ router.post('/scan', requireAuth, async (req, res) => {
     ];
 
     // Pick 3 random findings to add
-    const shuffled = findings.sort(() => Math.random() - 0.5).slice(0, 3);
+    const shuffled = findingTemplates.sort(() => Math.random() - 0.5).slice(0, 3);
     for (const finding of shuffled) {
       await addActivity('scan', finding.title, finding.detail, req.user.userId);
     }
