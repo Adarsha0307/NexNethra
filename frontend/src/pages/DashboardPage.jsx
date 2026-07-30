@@ -133,7 +133,7 @@ function DashboardPage() {
         {scanResult && !scanResult.scanning && (
           <div className="analysis-result fade-in" style={{ marginTop: '0.75rem' }}>
             {scanResult.error ? <p style={{ color: '#ff6b6b' }}>{scanResult.error}</p> : (
-              <p>Scan complete — {scanResult.findings || 0} findings, score: {scanResult.score}/100</p>
+              <><p>{scanResult.message}</p><p style={{ fontSize: '0.9rem', color: '#a0aec0' }}>{scanResult.findings || 0} findings &middot; Score: {scanResult.score}/100</p></>
             )}
           </div>
         )}

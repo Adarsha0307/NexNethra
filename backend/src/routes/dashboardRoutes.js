@@ -34,10 +34,12 @@ router.post('/scan', requireAuth, async (req, res) => {
       await addActivity('scan', finding.title, finding.detail, req.user.userId);
     }
 
-    const secure = shuffled.every((f) => !f.detail.includes('flagged') && !f.detail.includes('exposed') && !f.detail.includes('suspicious') && !f.detail.includes('tampering'));
-    const status = secure ? 'SECURE' : 'WARNINGS FOUND';
+    const flaggedCount = shuffled.filter((f) => f.detail.includes('flagged') || f.detail.includes('exposed') || f.detail.includes('suspicious') || f.detail.includes('tampering')).length;
+    const findings = shuffled.length;
+    const score = Math.max(0, 100 - flaggedCount * 30);
+    const status = score >= 80 ? 'SECURE' : score >= 50 ? 'CAUTION' : 'WARNINGS FOUND';
 
-    return res.json({ success: true, scanId, status, message: `System scan complete. ${status}.` });
+    return res.json({ success: true, scanId, status, score, findings, message: `System scan complete. ${status}. ${flaggedCount} issue${flaggedCount !== 1 ? 's' : ''} found.` });
   } catch (error) {
     console.error('Error running scan:', error);
     return res.status(500).json({ message: 'Error running system scan' });
