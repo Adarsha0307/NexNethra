@@ -147,6 +147,8 @@ select {
 
 /* Sidebar Styling */
 .sidebar {
+  position: relative;
+  z-index: 10;
   padding: 1.5rem 1.25rem;
   background: rgba(4, 9, 20, 0.95);
   border-right: 1px solid rgba(43, 127, 255, 0.15);
@@ -285,6 +287,8 @@ select {
 
 /* Main Panel Layout */
 .content-panel {
+  position: relative;
+  z-index: 10;
   padding: 2rem 2.25rem;
   overflow-y: auto;
   max-height: 100vh;
