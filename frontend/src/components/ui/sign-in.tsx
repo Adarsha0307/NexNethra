@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import NeuralBackground from './flow-field-background';
+import CyberBackground from './cyber-background';
 
 export interface Testimonial {
   avatarSrc: string;
@@ -51,9 +51,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
   return (
     <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw] relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <NeuralBackground color="#818cf8" trailOpacity={0.08} particleCount={400} speed={0.4} />
-      </div>
+      <CyberBackground />
       <section className="flex-1 flex items-center justify-center p-8 relative z-10">
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">

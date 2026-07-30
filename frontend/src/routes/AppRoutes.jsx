@@ -6,10 +6,12 @@ import AnalyzerPage from '../pages/AnalyzerPage';
 import IncidentsPage from '../pages/IncidentsPage';
 import SettingsPage from '../pages/SettingsPage';
 import { FloatingAiAssistant } from '../components/ui/glowing-ai-chat-assistant';
+import CyberBackground from '../components/ui/cyber-background';
 
 function AppRoutes() {
   return (
     <div className="app-shell">
+      <CyberBackground />
       <Sidebar />
       <main className="content-panel">
         <Routes>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getApiUrl } from '../api';
 import { SignInPage } from '../components/ui/sign-in';
-import NeuralBackground from '../components/ui/flow-field-background';
+import CyberBackground from '../components/ui/cyber-background';
 
 const HERO_IMAGE = '/hero-bg.jpg';
 
@@ -150,10 +150,8 @@ function AuthPage({ onAuth }) {
 
   if (step === 'register') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030a12] p-4 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <NeuralBackground color="#818cf8" trailOpacity={0.08} particleCount={400} speed={0.4} />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+        <CyberBackground />
         <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
           <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
           <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
@@ -182,10 +180,8 @@ function AuthPage({ onAuth }) {
 
   if (step === 'verify-email') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030a12] p-4 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <NeuralBackground color="#818cf8" trailOpacity={0.08} particleCount={400} speed={0.4} />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+        <CyberBackground />
         <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
           <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
           <h1 className="text-3xl font-bold text-white mb-2">Verify your email</h1>
@@ -202,10 +198,8 @@ function AuthPage({ onAuth }) {
 
   if (step === 'mfa-code') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#030a12] p-4 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <NeuralBackground color="#818cf8" trailOpacity={0.08} particleCount={400} speed={0.4} />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+        <CyberBackground />
         <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
           <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
           <h1 className="text-3xl font-bold text-white mb-2">Two-factor authentication</h1>
