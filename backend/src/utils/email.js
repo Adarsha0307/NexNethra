@@ -1,6 +1,6 @@
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, subject, html, text }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
@@ -19,7 +19,7 @@ async function sendEmail({ to, subject, html }) {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ from, to, subject, html }),
+    body: JSON.stringify({ from, to, subject, html, text }),
   });
 
   const result = await response.json();
@@ -36,16 +36,29 @@ async function sendEmail({ to, subject, html }) {
 export async function sendVerificationCodeEmail(to, code) {
   return sendEmail({
     to,
-    subject: 'Verify your Nexnetra account',
+    subject: `Your Nexnetra verification code is ${code}`,
+    text: `Your Nexnetra verification code is ${code}. It expires in 15 minutes. If you didn't create a Nexnetra account, you can safely ignore this email.`,
     html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2>Verify your email</h2>
-        <p>Use the code below to activate your Nexnetra account. This code expires in 15 minutes.</p>
-        <p style="font-size: 32px; font-weight: bold; letter-spacing: 4px;">${code}</p>
-        <p style="color: #666; font-size: 13px;">
-          If you didn't create a Nexnetra account, you can safely ignore this email.
-        </p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <body style="margin:0; padding:24px; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; margin:0 auto;">
+          <tr>
+            <td style="background-color:#ffffff; border-radius:12px; padding:32px;">
+              <p style="margin:0 0 16px; color:#4fd1c5; font-size:12px; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">Nexnetra</p>
+              <h1 style="margin:0 0 12px; color:#1a202c; font-size:20px; font-weight:bold;">Verify your email</h1>
+              <p style="margin:0 0 24px; color:#4a5568; font-size:14px; line-height:1.6;">
+                Use the code below to activate your Nexnetra account. This code expires in 15 minutes.
+              </p>
+              <p style="margin:0 0 24px; padding:16px; background-color:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; color:#1a202c; font-size:32px; font-weight:bold; letter-spacing:6px; text-align:center;">${code}</p>
+              <p style="margin:0; color:#718096; font-size:13px; line-height:1.5;">
+                If you didn't create a Nexnetra account, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `,
   });
 }
@@ -53,16 +66,29 @@ export async function sendVerificationCodeEmail(to, code) {
 export async function sendPasswordResetEmail(to, code) {
   return sendEmail({
     to,
-    subject: 'Reset your Nexnetra password',
+    subject: `Your Nexnetra password reset code is ${code}`,
+    text: `Your Nexnetra password reset code is ${code}. It expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.`,
     html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2>Reset your password</h2>
-        <p>Use the code below to reset your Nexnetra password. This code expires in 15 minutes.</p>
-        <p style="font-size: 32px; font-weight: bold; letter-spacing: 4px;">${code}</p>
-        <p style="color: #666; font-size: 13px;">
-          If you didn't request a password reset, you can safely ignore this email.
-        </p>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <body style="margin:0; padding:24px; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; margin:0 auto;">
+          <tr>
+            <td style="background-color:#ffffff; border-radius:12px; padding:32px;">
+              <p style="margin:0 0 16px; color:#4fd1c5; font-size:12px; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">Nexnetra</p>
+              <h1 style="margin:0 0 12px; color:#1a202c; font-size:20px; font-weight:bold;">Reset your password</h1>
+              <p style="margin:0 0 24px; color:#4a5568; font-size:14px; line-height:1.6;">
+                Use the code below to reset your Nexnetra password. This code expires in 15 minutes.
+              </p>
+              <p style="margin:0 0 24px; padding:16px; background-color:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; color:#1a202c; font-size:32px; font-weight:bold; letter-spacing:6px; text-align:center;">${code}</p>
+              <p style="margin:0; color:#718096; font-size:13px; line-height:1.5;">
+                If you didn't request a password reset, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
     `,
   });
 }
