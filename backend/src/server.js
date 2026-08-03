@@ -66,21 +66,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Nexnetra backend is running' });
 });
 
-// TEMPORARY: reset all data (REMOVE AFTER USE)
-app.post('/api/reset', async (req, res) => {
-  try {
-    const { query } = await import('./utils/db.js');
-    const tables = ['user_sessions', 'refresh_tokens', 'api_keys', 'notification_preferences', 'quiet_hours', 'ip_blocklist', 'team_members', 'oauth_provider_configs', 'auto_remediation_config', 'incident_auto_close_config', 'rate_limit_configs', 'keyboard_shortcuts', 'url_scans', 'activities', 'incidents', 'users'];
-    for (const t of tables) {
-      await query(`TRUNCATE TABLE ${t} RESTART IDENTITY CASCADE`);
-    }
-    res.json({ message: 'All data cleared.' });
-  } catch (err) {
-    console.error('reset error:', err);
-    res.status(500).json({ error: 'Reset failed.' });
-  }
-});
-
 app.use('/api/auth', authRoutes);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/analyze', analyzerRoutes);
