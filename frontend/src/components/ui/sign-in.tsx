@@ -73,10 +73,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               </div>
 
               <div className="animate-element animate-delay-400">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-muted-foreground">Password</label>
-                  <a href="#" onClick={(e) => { e.preventDefault(); onResetPassword?.(); }} className="text-sm text-violet-400 hover:underline transition-colors">Forgot password?</a>
-                </div>
+                <label className="text-sm font-medium text-muted-foreground">Password</label>
                 <GlassInputWrapper>
                   <div className="relative">
                     <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none" />
@@ -85,6 +82,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                     </button>
                   </div>
                 </GlassInputWrapper>
+                <div className="mt-2 text-right">
+                  <a href="#" onClick={(e) => { e.preventDefault(); onResetPassword?.(); }} className="text-sm text-violet-400 hover:underline transition-colors">Forgot password?</a>
+                </div>
               </div>
 
               <div className="animate-element animate-delay-500 text-sm">
