@@ -66,6 +66,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Nexnetra backend is running' });
 });
 
+// TEMPORARY: diagnostic env check (REMOVE AFTER USE)
+app.get('/api/diag', (req, res) => {
+  const has = (v) => !!process.env[v];
+  res.json({
+    RESEND_API_KEY_loaded: has('RESEND_API_KEY'),
+    RESEND_API_KEY_exists: has('RESEND_API_KEY') ? typeof process.env.RESEND_API_KEY : 'unset',
+    RESEND_FROM_loaded: has('RESEND_FROM'),
+    RESEND_FROM: process.env.RESEND_FROM || 'unset',
+    DATABASE_URL_loaded: has('DATABASE_URL'),
+    CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || 'unset',
+    OPENROUTER_API_KEY_loaded: has('OPENROUTER_API_KEY'),
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/analyze', analyzerRoutes);
