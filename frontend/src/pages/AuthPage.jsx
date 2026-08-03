@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getApiUrl } from '../api';
 import { SignInPage } from '../components/ui/sign-in';
 import CyberBackground from '../components/ui/cyber-background';
+import OTPVerification from '../components/ui/otp-input';
 
 const HERO_IMAGE = '/hero-bg.jpg';
 
@@ -60,6 +61,24 @@ function AuthPage({ onAuth }) {
     } else {
       setMessage(data.error);
     }
+  }
+
+  async function handleVerifyEmailCode(otpCode) {
+    setMessage('');
+    const res = await fetch(getApiUrl('/api/auth/verify-email'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, code: otpCode }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setMessage('Email verified! You can now sign in.');
+      setStep('login');
+      return true;
+    }
+    setMessage(data.error);
+    return false;
   }
 
   async function handleResendCode() {
@@ -129,6 +148,26 @@ function AuthPage({ onAuth }) {
     } else {
       setMessage(data.error);
     }
+  }
+
+  async function handleMfaVerifyCode(otpCode) {
+    setMessage('');
+
+    const res = await fetch(getApiUrl('/api/auth/login/verify-mfa'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pendingToken, code: otpCode }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('nexnetra_token', data.accessToken);
+      if (data.refreshToken) localStorage.setItem('nexnetra_refresh', data.refreshToken);
+      onAuth({ token: data.accessToken });
+      return true;
+    }
+    setMessage(data.error);
+    return false;
   }
 
   async function handleGoogleSignIn() {
@@ -228,15 +267,14 @@ function AuthPage({ onAuth }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
         <CyberBackground />
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
-          <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
-          <h1 className="text-3xl font-bold text-white mb-2">Verify your email</h1>
-          {message && <p className="text-[#a0aec0] text-sm mb-4">{message}</p>}
-          <form onSubmit={handleVerifyEmail} className="space-y-4">
-            <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[#2b7fff] text-center tracking-widest text-2xl" placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} />
-            <button className="w-full bg-[#2b7fff] text-white rounded-2xl py-4 font-medium hover:bg-[#2b7fff]/90 transition-colors" type="submit">Verify</button>
-          </form>
-          <button className="w-full text-center text-sm text-[#a0aec0] mt-4 hover:text-white transition-colors" onClick={handleResendCode}>Resend code</button>
+        <div className="relative z-10 w-full flex justify-center">
+          <OTPVerification
+            length={6}
+            email={form.email}
+            title="Verify your email"
+            verifyOTP={handleVerifyEmailCode}
+            onResend={handleResendCode}
+          />
         </div>
       </div>
     );
@@ -246,15 +284,12 @@ function AuthPage({ onAuth }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
         <CyberBackground />
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
-          <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
-          <h1 className="text-3xl font-bold text-white mb-2">Two-factor authentication</h1>
-          <p className="text-[#a0aec0] mb-6">Enter the code from your authenticator app.</p>
-          {message && <p className="text-red-400 text-sm mb-4">{message}</p>}
-          <form onSubmit={handleMfaVerify} className="space-y-4">
-            <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[#2b7fff] text-center tracking-widest text-2xl" placeholder="000000" value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} maxLength={6} />
-            <button className="w-full bg-[#2b7fff] text-white rounded-2xl py-4 font-medium hover:bg-[#2b7fff]/90 transition-colors" type="submit">Verify</button>
-          </form>
+        <div className="relative z-10 w-full flex justify-center">
+          <OTPVerification
+            length={6}
+            title="Two-factor authentication"
+            verifyOTP={handleMfaVerifyCode}
+          />
         </div>
       </div>
     );
