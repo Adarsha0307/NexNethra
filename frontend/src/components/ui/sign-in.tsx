@@ -75,9 +75,9 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               <div className="animate-element animate-delay-400">
                 <label className="text-sm font-medium text-muted-foreground">Password</label>
                 <GlassInputWrapper>
-                  <div className="relative">
-                    <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center">
+                  <div className="flex items-center">
+                    <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="flex items-center px-3 shrink-0">
                       {showPassword ? <EyeOff className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" /> : <Eye className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />}
                     </button>
                   </div>
