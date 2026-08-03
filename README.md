@@ -1,6 +1,7 @@
 # Nexnetra
 
 Frontend: https://nex-nethra-frontend.vercel.app
+
 Backend: https://nexnetra-backend.onrender.com
 
 Nexnetra is an AI-powered cybersecurity platform for URL scanning, email analysis, password strength evaluation, incident reporting, and threat intelligence — all with a modern dashboard and AI assistant guidance.
