@@ -267,7 +267,8 @@ function AuthPage({ onAuth }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
         <CyberBackground />
-        <div className="relative z-10 w-full flex justify-center">
+        <div className="relative z-10 w-full flex flex-col items-center gap-4">
+          {message && <p className="max-w-sm text-center text-sm text-[#a0aec0] bg-white/5 border border-white/10 rounded-2xl px-4 py-3">{message}</p>}
           <OTPVerification
             length={6}
             email={form.email}
@@ -284,7 +285,8 @@ function AuthPage({ onAuth }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
         <CyberBackground />
-        <div className="relative z-10 w-full flex justify-center">
+        <div className="relative z-10 w-full flex flex-col items-center gap-4">
+          {message && <p className="max-w-sm text-center text-sm text-[#a0aec0] bg-white/5 border border-white/10 rounded-2xl px-4 py-3">{message}</p>}
           <OTPVerification
             length={6}
             title="Two-factor authentication"
