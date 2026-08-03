@@ -19,6 +19,8 @@ function AuthPage({ onAuth }) {
   const [code, setCode] = useState('');
   const [pendingToken, setPendingToken] = useState(null);
   const [mfaCode, setMfaCode] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   async function handleRegister(event) {
     event.preventDefault();
@@ -148,6 +150,50 @@ function AuthPage({ onAuth }) {
     }
   }
 
+  async function handleForgotPassword(event) {
+    event.preventDefault();
+    setMessage('');
+    setErrors([]);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email');
+
+    const res = await fetch(getApiUrl('/api/auth/forgot-password'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setResetEmail(email);
+      setStep('reset-password');
+      setMessage(data.devCode ? `${data.message} Dev code: ${data.devCode}` : data.message);
+    } else {
+      setErrors([data.error]);
+    }
+  }
+
+  async function handleResetPassword(event) {
+    event.preventDefault();
+    setMessage('');
+    setErrors([]);
+
+    const res = await fetch(getApiUrl('/api/auth/reset-password'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: resetEmail, code, password }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setMessage('Password reset successful! You can now sign in.');
+      setStep('login');
+    } else {
+      setErrors(data.reasons || [data.error]);
+    }
+  }
+
   if (step === 'register') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
@@ -214,13 +260,68 @@ function AuthPage({ onAuth }) {
     );
   }
 
+  if (step === 'forgot-password') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+        <CyberBackground />
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
+          <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Reset your password</h1>
+          <p className="text-[#a0aec0] mb-6">Enter your account email and we will send you a reset code.</p>
+
+          {errors.length > 0 && (
+            <ul className="text-red-400 text-sm mb-4 pl-4" style={{ listStyle: 'disc' }}>
+              {errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          )}
+          {message && <p className="text-[#a0aec0] text-sm mb-4">{message}</p>}
+
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <input name="email" className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[#2b7fff]" placeholder="Email" type="email" required />
+            <button className="w-full bg-[#2b7fff] text-white rounded-2xl py-4 font-medium hover:bg-[#2b7fff]/90 transition-colors" type="submit">Send reset code</button>
+          </form>
+
+          <button className="w-full text-center text-sm text-[#a0aec0] mt-4 hover:text-white transition-colors" onClick={() => { setStep('login'); setMessage(''); setErrors([]); }}>Back to sign in</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 'reset-password') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+        <CyberBackground />
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10">
+          <p className="text-sm uppercase tracking-widest text-[#4fd1c5] font-bold mb-2">Nexnetra access</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Enter new password</h1>
+          <p className="text-[#a0aec0] mb-6">Enter the reset code and your new password.</p>
+
+          {errors.length > 0 && (
+            <ul className="text-red-400 text-sm mb-4 pl-4" style={{ listStyle: 'disc' }}>
+              {errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          )}
+          {message && <p className="text-[#a0aec0] text-sm mb-4">{message}</p>}
+
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[#2b7fff] text-center tracking-widest text-2xl" placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} />
+            <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[#2b7fff]" type="password" placeholder="New password (min 10 chars)" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button className="w-full bg-[#2b7fff] text-white rounded-2xl py-4 font-medium hover:bg-[#2b7fff]/90 transition-colors" type="submit">Reset password</button>
+          </form>
+
+          <button className="w-full text-center text-sm text-[#a0aec0] mt-4 hover:text-white transition-colors" onClick={() => { setStep('login'); setMessage(''); setErrors([]); }}>Back to sign in</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SignInPage
       heroImageSrc={HERO_IMAGE}
       testimonials={testimonials}
       error={message}
       onSignIn={handleSignIn}
-      onResetPassword={() => setMessage('Password reset is not yet implemented.')}
+      onResetPassword={() => { setStep('forgot-password'); setMessage(''); setErrors([]); }}
       onCreateAccount={() => { setStep('register'); setMessage(''); setErrors([]); }}
     />
   );

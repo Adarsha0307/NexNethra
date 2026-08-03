@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import { analyzePassword } from '../utils/passwordAnalyzer.js';
-import { sendVerificationCodeEmail } from '../utils/email.js';
+import { sendVerificationCodeEmail, sendPasswordResetEmail } from '../utils/email.js';
 import {
   generateCode,
   hashCode,
@@ -377,5 +377,91 @@ export async function disableMfa(req, res) {
   } catch (err) {
     console.error('disableMfa error:', err);
     return res.status(500).json({ error: 'Something went wrong disabling MFA.' });
+  }
+}
+
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required.' });
+    }
+
+    const emailNormalized = String(email).trim().toLowerCase();
+    const user = await userStore.findUserByEmail(emailNormalized);
+
+    // Always respond the same way to avoid user enumeration
+    const genericMessage = 'If an account exists for that email, a reset code has been sent.';
+
+    if (!user) {
+      return res.json({ message: genericMessage });
+    }
+
+    const code = generateCode();
+    await userStore.updateUser(user.id, {
+      resetCodeHash: hashCode(code),
+      resetCodeExpiry: getExpiryTimestamp(),
+    });
+
+    try {
+      await sendPasswordResetEmail(user.email, code);
+    } catch (emailErr) {
+      console.warn('Failed to send password reset email:', emailErr.message);
+    }
+
+    return res.json({
+      message: genericMessage,
+      devCode: !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('re_') ? code : undefined,
+    });
+  } catch (err) {
+    console.error('forgotPassword error:', err);
+    return res.status(500).json({ error: 'Something went wrong requesting a password reset.' });
+  }
+}
+
+export async function resetPassword(req, res) {
+  try {
+    const { email, code, password } = req.body;
+    if (!email || !code || !password) {
+      return res.status(400).json({ error: 'Email, code, and new password are required.' });
+    }
+
+    const emailNormalized = String(email).trim().toLowerCase();
+    const user = await userStore.findUserByEmail(emailNormalized);
+    if (!user) {
+      return res.status(404).json({ error: 'Account not found.' });
+    }
+
+    if (!user.resetCodeHash || !user.resetCodeExpiry) {
+      return res.status(400).json({ error: 'No password reset request found. Request a new code.' });
+    }
+
+    if (isExpired(user.resetCodeExpiry)) {
+      return res.status(400).json({ error: 'Reset code has expired. Request a new one.' });
+    }
+
+    if (!verifyCode(code, user.resetCodeHash)) {
+      return res.status(400).json({ error: 'Invalid reset code.' });
+    }
+
+    const analysis = analyzePassword(password, { email: emailNormalized });
+    if (!analysis.valid) {
+      return res.status(400).json({ error: 'Weak password.', reasons: analysis.reasons });
+    }
+
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+    await userStore.updateUser(user.id, {
+      passwordHash,
+      resetCodeHash: null,
+      resetCodeExpiry: null,
+    });
+
+    await revokeUserTokens(user.id);
+
+    return res.json({ message: 'Password has been reset. You can now sign in.' });
+  } catch (err) {
+    console.error('resetPassword error:', err);
+    return res.status(500).json({ error: 'Something went wrong resetting the password.' });
   }
 }
