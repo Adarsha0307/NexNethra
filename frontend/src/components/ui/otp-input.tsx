@@ -306,17 +306,6 @@ export function OTPVerification({
       <div className="absolute inset-0 bg-white/80 dark:bg-[#0b1426]/97 rounded-3xl"></div>
 
       <div className="relative z-10">
-        {/* Logo */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-black dark:bg-white rounded-full flex items-center justify-center">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            </div>
-          </div>
-        </div>
-
         {/* Title */}
         <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-white mb-2">
           {state === 'success' ? 'Verification Successful!' : title || 'Enter Verification Code'}
