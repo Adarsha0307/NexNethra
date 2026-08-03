@@ -1,6 +1,37 @@
+import nodemailer from 'nodemailer';
+
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
-async function sendEmail({ to, subject, html, text }) {
+function getGmailTransport() {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    console.error('[email] GMAIL_USER or GMAIL_APP_PASSWORD is NOT set in environment variables.');
+    throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD must be set to send emails.');
+  }
+
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user, pass },
+  });
+}
+
+async function sendWithGmail({ to, subject, html, text }) {
+  const user = process.env.GMAIL_USER;
+  const from = process.env.EMAIL_FROM || `Nexnetra <${user}>`;
+
+  console.log(`[email] Sending via Gmail to: ${to}`);
+  console.log(`[email] From: ${from}`);
+
+  const transporter = getGmailTransport();
+  const result = await transporter.sendMail({ from, to, subject, html, text });
+
+  console.log('[email] Gmail send result:', result.messageId, '| response:', result.response);
+  return { id: result.messageId };
+}
+
+async function sendWithResend({ to, subject, html, text }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
@@ -9,7 +40,7 @@ async function sendEmail({ to, subject, html, text }) {
     throw new Error('RESEND_API_KEY is not set in environment variables.');
   }
 
-  console.log(`[email] Sending to: ${to}`);
+  console.log(`[email] Sending via Resend to: ${to}`);
   console.log(`[email] From: ${from}`);
   console.log(`[email] RESEND_API_KEY: ${apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)} (loaded)` : 'undefined'}`);
 
@@ -31,6 +62,13 @@ async function sendEmail({ to, subject, html, text }) {
   }
 
   return result;
+}
+
+async function sendEmail(payload) {
+  if (process.env.EMAIL_PROVIDER === 'gmail') {
+    return sendWithGmail(payload);
+  }
+  return sendWithResend(payload);
 }
 
 export async function sendVerificationCodeEmail(to, code) {
