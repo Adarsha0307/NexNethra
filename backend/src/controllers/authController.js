@@ -84,10 +84,12 @@ export async function register(req, res) {
       verificationCodeExpiry,
     });
 
+    console.log('[register] Generating OTP and sending to:', emailNormalized);
     try {
       await sendVerificationCodeEmail(emailNormalized, code);
+      console.log('[register] Verification email sent successfully.');
     } catch (emailErr) {
-      console.warn('Failed to send verification email (set RESEND_API_KEY in .env):', emailErr.message);
+      console.error('[register] Failed to send verification email:', emailErr.message);
     }
 
     return res.status(201).json({

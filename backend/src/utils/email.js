@@ -5,8 +5,13 @@ async function sendEmail({ to, subject, html }) {
   const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
 
   if (!apiKey) {
+    console.error('[email] RESEND_API_KEY is NOT set in environment variables.');
     throw new Error('RESEND_API_KEY is not set in environment variables.');
   }
+
+  console.log(`[email] Sending to: ${to}`);
+  console.log(`[email] From: ${from}`);
+  console.log(`[email] RESEND_API_KEY: ${apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)} (loaded)` : 'undefined'}`);
 
   const response = await fetch(RESEND_API_URL, {
     method: 'POST',
@@ -17,12 +22,15 @@ async function sendEmail({ to, subject, html }) {
     body: JSON.stringify({ from, to, subject, html }),
   });
 
+  const result = await response.json();
+  console.log('[email] Resend status:', response.status);
+  console.log('[email] Resend result:', JSON.stringify(result));
+
   if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`Resend API error (${response.status}): ${errorBody}`);
+    throw new Error(`Resend API error (${response.status}): ${JSON.stringify(result)}`);
   }
 
-  return response.json();
+  return result;
 }
 
 export async function sendVerificationCodeEmail(to, code) {
