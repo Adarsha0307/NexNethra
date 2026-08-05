@@ -315,7 +315,7 @@ export function OTPVerification({
 
   return (
     <div
-      className="rounded-3xl p-8 w-full max-w-sm shadow-lg dark:shadow-gray-900/50 relative overflow-hidden"
+      className="rounded-3xl p-8 w-full max-w-sm min-h-[400px] flex flex-col shadow-lg dark:shadow-gray-900/50 relative overflow-hidden isolate"
       style={{
         backgroundImage:
           'url(https://cdn.21st.dev/assets/localized/16c55696aea9e60fe904ded95cfa9615f3dd5850411f794c155beb28679fd3a4.gif)',
@@ -324,9 +324,9 @@ export function OTPVerification({
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <div className="absolute inset-0 bg-white/80 dark:bg-[#0b1426]/97 rounded-3xl"></div>
+      <div className="absolute inset-0 rounded-3xl bg-white/80 dark:bg-[#0b1426]/97 pointer-events-none"></div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col flex-1 justify-center">
         {/* Title */}
         <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-white mb-2">
           {state === 'success' ? 'Verification Successful!' : title || 'Enter Verification Code'}
