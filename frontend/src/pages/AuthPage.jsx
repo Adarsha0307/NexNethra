@@ -31,7 +31,7 @@ function AuthPage({ onAuth }) {
     if (res.ok) {
       setUserId(data.userId);
       setStep('verify-email');
-      setMessage(data.devCode ? `${data.message} Dev code: ${data.devCode}` : data.message);
+      setMessage(data.message);
     } else {
       setErrors(data.reasons || [data.error]);
     }
@@ -84,7 +84,7 @@ function AuthPage({ onAuth }) {
     });
 
     const data = await res.json();
-    setMessage(data.devCode ? `${data.message} Dev code: ${data.devCode}` : (data.message || data.error));
+    setMessage(data.message || data.error);
   }
 
   async function handleSignIn(event) {
@@ -200,7 +200,7 @@ function AuthPage({ onAuth }) {
     if (res.ok) {
       setResetEmail(email);
       setStep('reset-password');
-      setMessage(data.devCode ? `${data.message} Dev code: ${data.devCode}` : data.message);
+      setMessage(data.message);
     } else {
       setErrors([data.error]);
     }
