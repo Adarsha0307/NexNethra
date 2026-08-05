@@ -4,7 +4,7 @@ import { SignInPage } from '../components/ui/sign-in';
 import CyberBackground from '../components/ui/cyber-background';
 import OTPVerification from '../components/ui/otp-input';
 
-const HERO_IMAGE = '/hero-bg.jpg';
+const HERO_IMAGE = '/hero.jpeg';
 
 const testimonials = [
   
