@@ -70,6 +70,9 @@ app.get('/api/health', (req, res) => {
 app.get('/api/diag', (req, res) => {
   const has = (v) => !!process.env[v];
   res.json({
+    EMAIL_PROVIDER: process.env.EMAIL_PROVIDER || 'unset',
+    SENDGRID_API_KEY_loaded: has('SENDGRID_API_KEY'),
+    GMAIL_APP_PASSWORD_loaded: has('GMAIL_APP_PASSWORD'),
     RESEND_API_KEY_loaded: has('RESEND_API_KEY'),
     RESEND_API_KEY_exists: has('RESEND_API_KEY') ? typeof process.env.RESEND_API_KEY : 'unset',
     RESEND_FROM_loaded: has('RESEND_FROM'),
