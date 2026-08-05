@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 import { AnimatePresence, motion, useAnimationControls } from 'framer-motion';
 
 const CheckIcon = ({ size = 16, strokeWidth = 3, ...props }: { size?: number; strokeWidth?: number } & React.SVGProps<SVGSVGElement>) => (
@@ -154,7 +154,7 @@ const OTPInputBox = ({
     const digits = pastedData.split('').filter((char) => /^[0-9]$/.test(char));
 
     digits.forEach((digit, i) => {
-      const targetIndex = index + i;
+      const targetIndex = i;
       if (targetIndex < length) {
         const input = document.getElementById(`${idPrefix}-${targetIndex}`) as HTMLInputElement | null;
         if (input) {
@@ -163,7 +163,7 @@ const OTPInputBox = ({
       }
     });
 
-    const nextFocusIndex = Math.min(index + digits.length, length - 1);
+    const nextFocusIndex = Math.min(digits.length, length - 1);
     document.getElementById(`${idPrefix}-${nextFocusIndex}`)?.focus();
 
     setTimeout(verifyOTP, 0);
@@ -227,7 +227,10 @@ export function OTPVerification({
   const [state, setState] = useState<'idle' | 'error' | 'success'>('idle');
   const [countdown, setCountdown] = useState(resendCooldown);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
+  const [resendError, setResendError] = useState('');
   const animationControls = useAnimationControls();
+  const verifyingRef = useRef(false);
+  const lastCodeRef = useRef('');
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | undefined;
@@ -258,18 +261,31 @@ export function OTPVerification({
   const verifyOTP = () => {
     const code = getCode();
     if (code.length < length) {
+      lastCodeRef.current = '';
       setState('idle');
       return null;
     }
+    if (code === lastCodeRef.current && verifyingRef.current) {
+      return null;
+    }
+    lastCodeRef.current = code;
+    if (verifyingRef.current) return null;
+    verifyingRef.current = true;
 
     const result = verifyCode(code);
-    Promise.resolve(result).then((ok) => {
-      if (ok) {
-        setState('success');
-      } else {
+    Promise.resolve(result)
+      .then((ok) => {
+        verifyingRef.current = false;
+        if (ok) {
+          setState('success');
+        } else {
+          errorAnimation();
+        }
+      })
+      .catch(() => {
+        verifyingRef.current = false;
         errorAnimation();
-      }
-    });
+      });
     return null;
   };
 
@@ -285,11 +301,16 @@ export function OTPVerification({
   };
 
   const handleResend = () => {
-    if (onResend) {
-      Promise.resolve(onResend()).catch(() => {});
-    }
-    setCountdown(resendCooldown);
-    setIsResendDisabled(true);
+    setResendError('');
+    const resend = onResend ? Promise.resolve(onResend()) : Promise.resolve();
+    resend
+      .then(() => {
+        setCountdown(resendCooldown);
+        setIsResendDisabled(true);
+      })
+      .catch((err) => {
+        setResendError(err?.message || 'Failed to resend code. Please try again.');
+      });
   };
 
   return (
@@ -372,6 +393,7 @@ export function OTPVerification({
 
               {/* Resend Link */}
               <div className="text-center">
+                {resendError && <p className="text-red-500 dark:text-red-400 text-sm mb-2">{resendError}</p>}
                 <span className="text-gray-600 dark:text-gray-300">
                   Didn't get a code?{' '}
                 </span>

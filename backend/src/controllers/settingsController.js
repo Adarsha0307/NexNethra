@@ -354,13 +354,18 @@ export async function getQuietHours(req, res) {
 export async function updateQuietHours(req, res) {
   try {
     const { enabled, startTime, endTime, timezone } = req.body;
-    const { rows } = await query(
-      `INSERT INTO quiet_hours (id, user_id, enabled, start_time, end_time, timezone)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       ON CONFLICT (id) DO UPDATE SET enabled = EXCLUDED.enabled, start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, timezone = EXCLUDED.timezone
-       RETURNING *`,
-      [crypto.randomUUID(), req.user.userId, !!enabled, startTime || '22:00', endTime || '07:00', timezone || 'UTC']
+    const values = [!!enabled, startTime || '22:00', endTime || '07:00', timezone || 'UTC', req.user.userId];
+    const { rowCount } = await query(
+      `UPDATE quiet_hours SET enabled = $1, start_time = $2, end_time = $3, timezone = $4 WHERE user_id = $5`,
+      values
     );
+    if (rowCount === 0) {
+      await query(
+        `INSERT INTO quiet_hours (id, user_id, enabled, start_time, end_time, timezone) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [crypto.randomUUID(), req.user.userId, ...values]
+      );
+    }
+    const { rows } = await query('SELECT * FROM quiet_hours WHERE user_id = $1', [req.user.userId]);
     return res.json((await toCamel(rows))[0]);
   } catch (err) {
     console.error('updateQuietHours error:', err);
@@ -441,7 +446,7 @@ export async function updateOAuthProvider(req, res) {
       `INSERT INTO oauth_provider_configs (id, user_id, provider, enabled, client_id, client_secret, created_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        ON CONFLICT (user_id, provider) DO UPDATE SET enabled = EXCLUDED.enabled, client_id = EXCLUDED.client_id, client_secret = COALESCE(EXCLUDED.client_secret, oauth_provider_configs.client_secret)`,
-      [id, req.user.userId, provider, !!enabled, clientId || '', clientSecret || '', new Date().toISOString()]
+      [id, req.user.userId, provider, !!enabled, clientId || '', clientSecret || null, new Date().toISOString()]
     );
     return res.json({ message: `${provider} configuration updated.` });
   } catch (err) {
@@ -559,7 +564,7 @@ export async function getHealthStatus(req, res) {
       { service: 'backend', status: 'healthy', lastChecked: Date.now(), message: 'API server is running' },
       { service: 'database', status: 'healthy', lastChecked: Date.now(), message: 'PostgreSQL connected' },
       { service: 'ai-provider', status: 'unknown', lastChecked: null, message: 'Not configured' },
-      { service: 'email', status: process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.startsWith('re_') ? 'unhealthy' : 'healthy', lastChecked: null, message: process.env.RESEND_API_KEY && !process.env.RESEND_API_KEY.startsWith('re_') ? 'API key not set' : 'Resend configured' },
+      { service: 'email', status: process.env.SENDGRID_API_KEY || process.env.RESEND_API_KEY ? 'healthy' : 'unhealthy', lastChecked: null, message: process.env.SENDGRID_API_KEY || process.env.RESEND_API_KEY ? 'Email provider configured' : 'No email provider key set' },
       { service: 'ssl', status: 'healthy', lastChecked: null, message: 'HTTPS active' },
     ];
     for (const svc of services) {
@@ -637,7 +642,7 @@ export async function exportUserData(req, res) {
   try {
     const user = await userStore.findUserById(req.user.userId);
     const { rows: incidents } = await query('SELECT * FROM incidents WHERE reporter = $1', [user.email]);
-    const { rows: activities } = await query('SELECT * FROM activities ORDER BY timestamp DESC LIMIT 100');
+    const { rows: activities } = await query('SELECT * FROM activities WHERE user_id = $1 ORDER BY timestamp DESC LIMIT 100', [req.user.userId]);
     const { rows: sessions } = await query('SELECT * FROM user_sessions WHERE user_id = $1', [req.user.userId]);
     return res.json({
       exportedAt: new Date().toISOString(),

@@ -100,7 +100,7 @@ function ProfileSection({ fetcher, showMessage, showError }) {
   useEffect(() => { fetcher('/api/settings/profile').then(d => { setProfile(d); setFirstName(d.firstName || ''); setLastName(d.lastName || ''); }).catch(showError); }, []);
 
   async function handleSave() {
-    try { await fetcher('/api/settings/profile', { method: 'PUT', body: JSON.stringify({ firstName, lastName }) }); showMessage('Profile updated.'); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/profile', { method: 'PATCH', body: JSON.stringify({ firstName, lastName }) }); showMessage('Profile updated.'); } catch (err) { showError(err.message); }
   }
 
   if (!profile) return <div className="panel-card" style={{ padding: '1.75rem' }}><p>Loading...</p></div>;
@@ -118,6 +118,7 @@ function ProfileSection({ fetcher, showMessage, showError }) {
 }
 
 function SecuritySection({ fetcher, showMessage, showError }) {
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [mfaStatus, setMfaStatus] = useState(null);
@@ -126,23 +127,21 @@ function SecuritySection({ fetcher, showMessage, showError }) {
   const [mfaCode, setMfaCode] = useState('');
   const [mfaStep, setMfaStep] = useState('idle');
 
-  useEffect(() => { fetcher('/api/settings/security').then(d => setMfaStatus(d)).catch(() => {}); }, []);
-
   async function handleChangePassword() {
     if (password !== confirmPassword) return showError('Passwords do not match.');
-    try { await fetcher('/api/settings/security/password', { method: 'PUT', body: JSON.stringify({ password, confirmPassword }) }); showMessage('Password changed.'); setPassword(''); setConfirmPassword(''); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/security/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword: password }) }); showMessage('Password changed.'); setCurrentPassword(''); setPassword(''); setConfirmPassword(''); } catch (err) { showError(err.message); }
   }
 
   async function handleSetupMfa() {
-    try { const d = await fetcher('/api/auth/mfa/setup', { method: 'POST' }); setMfaSecret(d.secret); setMfaQr(d.qrCode); setMfaStep('confirm'); } catch (err) { showError(err.message); }
+    try { const d = await fetcher('/api/settings/security/mfa/setup', { method: 'POST' }); setMfaSecret(d.secret); setMfaQr(d.qrCodeDataUrl); setMfaStep('confirm'); } catch (err) { showError(err.message); }
   }
 
   async function handleConfirmMfa() {
-    try { await fetcher('/api/auth/mfa/confirm', { method: 'POST', body: JSON.stringify({ secret: mfaSecret, code: mfaCode }) }); showMessage('MFA enabled.'); setMfaStep('idle'); setMfaStatus({ mfaEnabled: true }); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/security/mfa/confirm', { method: 'POST', body: JSON.stringify({ secret: mfaSecret, code: mfaCode }) }); showMessage('MFA enabled.'); setMfaStep('idle'); setMfaStatus({ mfaEnabled: true }); } catch (err) { showError(err.message); }
   }
 
   async function handleDisableMfa() {
-    try { await fetcher('/api/auth/mfa/disable', { method: 'POST' }); showMessage('MFA disabled.'); setMfaStatus({ mfaEnabled: false }); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/security/mfa/disable', { method: 'POST' }); showMessage('MFA disabled.'); setMfaStatus({ mfaEnabled: false }); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -150,6 +149,7 @@ function SecuritySection({ fetcher, showMessage, showError }) {
       <h2>Security</h2>
       <div style={{ marginBottom: '2rem' }}>
         <h3>Change Password</h3>
+        <div className="form-group"><label>Current Password</label><input type="password" className="input-area" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} /></div>
         <div className="form-group"><label>New Password</label><input type="password" className="input-area" value={password} onChange={e => setPassword(e.target.value)} /></div>
         <div className="form-group"><label>Confirm</label><input type="password" className="input-area" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></div>
         <button className="primary-btn" onClick={handleChangePassword}>Update Password</button>
@@ -188,7 +188,7 @@ function ApiKeysSection({ fetcher, showMessage, showError }) {
   }
 
   async function handleRevoke(id) {
-    try { await fetcher(`/api/settings/api-keys/${id}`, { method: 'DELETE' }); setKeys(prev => prev.filter(k => k.id !== id)); showMessage('Key revoked.'); } catch (err) { showError(err.message); }
+    try { await fetcher(`/api/settings/api-keys/${id}/revoke`, { method: 'POST' }); setKeys(prev => prev.filter(k => k.id !== id)); showMessage('Key revoked.'); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -201,7 +201,7 @@ function ApiKeysSection({ fetcher, showMessage, showError }) {
       </div>
       {keys.map(k => (
         <div key={k.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <div><strong>{k.name}</strong><br /><span style={{ fontSize: '0.8rem', color: '#999' }}>{k.key_prefix || k.id} — {k.last_used_at ? `Last used: ${new Date(k.last_used_at).toLocaleDateString()}` : 'Never used'}</span></div>
+          <div><strong>{k.name}</strong><br /><span style={{ fontSize: '0.8rem', color: '#999' }}>{k.keyPrefix || k.key_prefix || k.id} — {k.lastUsedAt ? `Last used: ${new Date(k.lastUsedAt).toLocaleDateString()}` : 'Never used'}</span></div>
           <button className="secondary-btn" style={{ color: '#ff6b6b', borderColor: '#ff6b6b' }} onClick={() => handleRevoke(k.id)}>Revoke</button>
         </div>
       ))}
@@ -219,7 +219,7 @@ function NotificationsSection({ fetcher, showMessage, showError }) {
   }
 
   if (!prefs) return <div className="panel-card" style={{ padding: '1.75rem' }}><p>Loading...</p></div>;
-  const labels = { email_critical: 'Email — Critical', email_high: 'Email — High', email_medium: 'Email — Medium', email_low: 'Email — Low', inapp_critical: 'In-App — Critical', inapp_high: 'In-App — High', inapp_medium: 'In-App — Medium', inapp_low: 'In-App — Low' };
+  const labels = { emailCritical: 'Email — Critical', emailHigh: 'Email — High', emailMedium: 'Email — Medium', emailLow: 'Email — Low', inappCritical: 'In-App — Critical', inappHigh: 'In-App — High', inappMedium: 'In-App — Medium', inappLow: 'In-App — Low' };
 
   return (
     <div className="panel-card" style={{ padding: '1.75rem' }}>
@@ -258,8 +258,8 @@ function QuietHoursSection({ fetcher, showMessage, showError }) {
         <input type="checkbox" checked={config.enabled} onChange={() => setConfig(p => ({ ...p, enabled: !p.enabled }))} />
         Enabled
       </label>
-      <div className="form-group"><label>Start</label><input className="input-area" type="time" value={config.start_time || '22:00'} onChange={e => setConfig(p => ({ ...p, start_time: e.target.value }))} /></div>
-      <div className="form-group"><label>End</label><input className="input-area" type="time" value={config.end_time || '07:00'} onChange={e => setConfig(p => ({ ...p, end_time: e.target.value }))} /></div>
+      <div className="form-group"><label>Start</label><input className="input-area" type="time" value={config.startTime || '22:00'} onChange={e => setConfig(p => ({ ...p, startTime: e.target.value }))} /></div>
+      <div className="form-group"><label>End</label><input className="input-area" type="time" value={config.endTime || '07:00'} onChange={e => setConfig(p => ({ ...p, endTime: e.target.value }))} /></div>
       <button className="primary-btn" onClick={handleSave}>Save</button>
     </div>
   );
@@ -273,11 +273,11 @@ function TeamSection({ fetcher, showMessage, showError }) {
 
   async function handleInvite() {
     if (!email.trim()) return;
-    try { const d = await fetcher('/api/settings/team', { method: 'POST', body: JSON.stringify({ email, role }) }); setMembers(prev => [...prev, d]); setEmail(''); showMessage('Invited.'); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/team/invite', { method: 'POST', body: JSON.stringify({ email, role }) }); setEmail(''); showMessage('Invited.'); const d = await fetcher('/api/settings/team'); setMembers(d); } catch (err) { showError(err.message); }
   }
 
-  async function handleRemove(userId) {
-    try { await fetcher(`/api/settings/team/${userId}`, { method: 'DELETE' }); setMembers(prev => prev.filter(m => m.user_id !== userId)); showMessage('Removed.'); } catch (err) { showError(err.message); }
+  async function handleRemove(memberId) {
+    try { await fetcher(`/api/settings/team/${memberId}`, { method: 'DELETE' }); setMembers(prev => prev.filter(m => m.id !== memberId)); showMessage('Removed.'); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -290,9 +290,9 @@ function TeamSection({ fetcher, showMessage, showError }) {
         <button className="primary-btn" onClick={handleInvite}>Invite</button>
       </div>
       {members.map(m => (
-        <div key={m.user_id || m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <div><strong>{m.email || m.user_id}</strong><br /><span style={{ fontSize: '0.8rem', color: '#999' }}>{m.role} — {m.joined_at ? 'Joined' : 'Pending'}</span></div>
-          <button className="secondary-btn" style={{ color: '#ff6b6b', borderColor: '#ff6b6b' }} onClick={() => handleRemove(m.user_id)}>Remove</button>
+        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <div><strong>{m.email || m.userId}</strong><br /><span style={{ fontSize: '0.8rem', color: '#999' }}>{m.role} — {m.joinedAt ? 'Joined' : 'Pending'}</span></div>
+          <button className="secondary-btn" style={{ color: '#ff6b6b', borderColor: '#ff6b6b' }} onClick={() => handleRemove(m.id)}>Remove</button>
         </div>
       ))}
     </div>
@@ -307,7 +307,7 @@ function IpBlocklistSection({ fetcher, showMessage, showError }) {
 
   async function handleAdd() {
     if (!ip.trim()) return;
-    try { const d = await fetcher('/api/settings/ip-blocklist', { method: 'POST', body: JSON.stringify({ ip_address: ip, reason }) }); setEntries(prev => [...prev, d]); setIp(''); setReason(''); showMessage('IP blocked.'); } catch (err) { showError(err.message); }
+    try { await fetcher('/api/settings/ip-blocklist', { method: 'POST', body: JSON.stringify({ ipAddress: ip, reason }) }); setIp(''); setReason(''); showMessage('IP blocked.'); const d = await fetcher('/api/settings/ip-blocklist'); setEntries(d); } catch (err) { showError(err.message); }
   }
 
   async function handleRemove(id) {
@@ -325,7 +325,7 @@ function IpBlocklistSection({ fetcher, showMessage, showError }) {
       <input className="input-area" placeholder="Reason (optional)" value={reason} onChange={e => setReason(e.target.value)} style={{ marginBottom: '1rem' }} />
       {entries.map(e => (
         <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <div><strong>{e.ip_address}</strong>{e.reason ? <span style={{ color: '#999', marginLeft: '0.5rem' }}>— {e.reason}</span> : null}</div>
+          <div><strong>{e.ipAddress || e.ip_address}</strong>{e.reason ? <span style={{ color: '#999', marginLeft: '0.5rem' }}>— {e.reason}</span> : null}</div>
           <button className="secondary-btn" style={{ color: '#ff6b6b', borderColor: '#ff6b6b' }} onClick={() => handleRemove(e.id)}>Unblock</button>
         </div>
       ))}
@@ -348,7 +348,7 @@ function AutoRemediationSection({ fetcher, showMessage, showError }) {
     <div className="panel-card" style={{ padding: '1.75rem' }}>
       <h2>Auto-Remediation</h2>
       <p className="page-copy">Automatically respond to detected threats.</p>
-      {[{ key: 'enabled', label: 'Enable Auto-Remediation' }, { key: 'auto_block_ip', label: 'Auto-Block IP Addresses' }, { key: 'auto_kill_process', label: 'Auto-Kill Suspicious Processes' }, { key: 'requires_approval', label: 'Require Approval Before Actions' }].map(({ key, label }) => (
+      {[{ key: 'enabled', label: 'Enable Auto-Remediation' }, { key: 'autoBlockIp', label: 'Auto-Block IP Addresses' }, { key: 'autoKillProcess', label: 'Auto-Kill Suspicious Processes' }, { key: 'requiresApproval', label: 'Require Approval Before Actions' }].map(({ key, label }) => (
         <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0' }}>
           <span>{label}</span>
           <label className="toggle" style={{ position: 'relative', display: 'inline-block', width: 44, height: 24 }}>
@@ -389,15 +389,15 @@ function AutoCloseSection({ fetcher, showMessage, showError }) {
 function OAuthSection({ fetcher, showMessage, showError }) {
   const [providers, setProviders] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ provider: 'google', client_id: '', client_secret: '' });
+  const [form, setForm] = useState({ provider: 'google', clientId: '', clientSecret: '' });
   useEffect(() => { fetcher('/api/settings/oauth').then(setProviders).catch(() => {}); }, []);
 
   async function handleSave() {
-    try { await fetcher('/api/settings/oauth', { method: 'POST', body: JSON.stringify(form) }); showMessage('OAuth config saved.'); const d = await fetcher('/api/settings/oauth'); setProviders(d); setEditing(null); } catch (err) { showError(err.message); }
+    try { await fetcher(`/api/settings/oauth/${form.provider}`, { method: 'PUT', body: JSON.stringify({ enabled: true, clientId: form.clientId, clientSecret: form.clientSecret }) }); showMessage('OAuth config saved.'); const d = await fetcher('/api/settings/oauth'); setProviders(d); setEditing(null); } catch (err) { showError(err.message); }
   }
 
-  async function handleToggle(id, enabled) {
-    try { await fetcher(`/api/settings/oauth/${id}`, { method: 'PUT', body: JSON.stringify({ enabled }) }); setProviders(prev => prev.map(p => p.id === id ? { ...p, enabled } : p)); showMessage(enabled ? 'Enabled.' : 'Disabled.'); } catch (err) { showError(err.message); }
+  async function handleToggle(provider, enabled) {
+    try { await fetcher(`/api/settings/oauth/${provider}`, { method: 'PUT', body: JSON.stringify({ enabled }) }); setProviders(prev => prev.map(p => p.provider === provider ? { ...p, enabled } : p)); showMessage(enabled ? 'Enabled.' : 'Disabled.'); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -406,18 +406,18 @@ function OAuthSection({ fetcher, showMessage, showError }) {
       <p className="page-copy">Configure SSO providers for your organization.</p>
       {providers.map(p => (
         <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0' }}>
-          <div><strong style={{ textTransform: 'capitalize' }}>{p.provider}</strong><span style={{ color: '#999', marginLeft: '0.5rem' }}>{p.client_id ? 'Configured' : 'Not configured'}</span></div>
+          <div><strong style={{ textTransform: 'capitalize' }}>{p.provider}</strong><span style={{ color: '#999', marginLeft: '0.5rem' }}>{p.clientId ? 'Configured' : 'Not configured'}</span></div>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button className="secondary-btn" onClick={() => { setEditing(p.id); setForm({ provider: p.provider, client_id: p.client_id || '', client_secret: '' }); }}>Edit</button>
-            <button className={`secondary-btn ${p.enabled ? 'active' : ''}`} onClick={() => handleToggle(p.id, !p.enabled)}>{p.enabled ? 'Disable' : 'Enable'}</button>
+            <button className="secondary-btn" onClick={() => { setEditing(p.provider); setForm({ provider: p.provider, clientId: p.clientId || '', clientSecret: '' }); }}>Edit</button>
+            <button className={`secondary-btn ${p.enabled ? 'active' : ''}`} onClick={() => handleToggle(p.provider, !p.enabled)}>{p.enabled ? 'Disable' : 'Enable'}</button>
           </div>
         </div>
       ))}
       {editing && (
         <div style={{ marginTop: '1rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}>
           <h3 style={{ textTransform: 'capitalize', marginBottom: '0.5rem' }}>{form.provider}</h3>
-          <div className="form-group"><label>Client ID</label><input className="input-area" value={form.client_id} onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))} /></div>
-          <div className="form-group"><label>Client Secret</label><input className="input-area" type="password" value={form.client_secret} onChange={e => setForm(p => ({ ...p, client_secret: e.target.value }))} /></div>
+          <div className="form-group"><label>Client ID</label><input className="input-area" value={form.clientId} onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))} /></div>
+          <div className="form-group"><label>Client Secret</label><input className="input-area" type="password" value={form.clientSecret} onChange={e => setForm(p => ({ ...p, clientSecret: e.target.value }))} /></div>
           <div style={{ display: 'flex', gap: '0.5rem' }}><button className="primary-btn" onClick={handleSave}>Save</button><button className="secondary-btn" onClick={() => setEditing(null)}>Cancel</button></div>
         </div>
       )}
@@ -432,7 +432,7 @@ function ShortcutsSection({ fetcher, showMessage, showError }) {
   useEffect(() => { fetcher('/api/settings/shortcuts').then(setShortcuts).catch(() => {}); }, []);
 
   async function handleSave(action) {
-    try { await fetcher('/api/settings/shortcuts', { method: 'PUT', body: JSON.stringify({ action, keys }) }); const d = await fetcher('/api/settings/shortcuts'); setShortcuts(d); setEditing(null); showMessage('Shortcut updated.'); } catch (err) { showError(err.message); }
+    try { await fetcher(`/api/settings/shortcuts/${action}`, { method: 'PUT', body: JSON.stringify({ keys }) }); const d = await fetcher('/api/settings/shortcuts'); setShortcuts(d); setEditing(null); showMessage('Shortcut updated.'); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -461,7 +461,7 @@ function HealthSection({ fetcher, showMessage, showError }) {
   useEffect(() => { fetcher('/api/settings/health').then(setChecks).catch(() => {}); }, []);
 
   async function handleRefresh() {
-    try { const d = await fetcher('/api/settings/health/check', { method: 'POST' }); setChecks(d); showMessage('Health check complete.'); } catch (err) { showError(err.message); }
+    try { const d = await fetcher('/api/settings/health'); setChecks(d); showMessage('Health check refreshed.'); } catch (err) { showError(err.message); }
   }
 
   return (
@@ -486,11 +486,11 @@ function ExportSection({ fetcher }) {
   const [exporting, setExporting] = useState(false);
   const [result, setResult] = useState(null);
 
-  async function handleExport(type) {
+  async function handleExport() {
     setExporting(true);
     setResult(null);
     try {
-      const data = await fetcher(`/api/settings/export/${type}`, { method: 'POST' });
+      const data = await fetcher('/api/settings/export');
       setResult(data);
     } catch (err) {
       setResult({ error: err.message });
@@ -503,13 +503,9 @@ function ExportSection({ fetcher }) {
     <div className="panel-card" style={{ padding: '1.75rem' }}>
       <h2>Export Data</h2>
       <p className="page-copy">Export your security data for backup or analysis.</p>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        {['incidents', 'activities', 'users', 'full'].map(t => (
-          <button key={t} className="secondary-btn" onClick={() => handleExport(t)} disabled={exporting} style={{ textTransform: 'capitalize' }}>
-            {exporting ? 'Exporting...' : `Export ${t}`}
-          </button>
-        ))}
-      </div>
+      <button className="secondary-btn" onClick={handleExport} disabled={exporting}>
+        {exporting ? 'Exporting...' : 'Export Data'}
+      </button>
       {result && (
         <div className="analysis-result fade-in" style={{ marginTop: '1rem' }}>
           {result.error ? <p style={{ color: '#ff6b6b' }}>{result.error}</p> : (

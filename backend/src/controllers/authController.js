@@ -95,7 +95,6 @@ export async function register(req, res) {
     return res.status(201).json({
       message: 'Account created. Check your email for a verification code.',
       userId: user.id,
-      devCode: !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('re_') ? code : undefined,
     });
   } catch (err) {
     console.error('register error:', err);
@@ -185,7 +184,6 @@ export async function resendVerificationCode(req, res) {
 
     return res.json({
       message: 'A new verification code has been sent.',
-      devCode: !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('re_') ? code : undefined,
     });
   } catch (err) {
     console.error('resendVerificationCode error:', err);
@@ -400,21 +398,20 @@ export async function forgotPassword(req, res) {
     }
 
     const code = generateCode();
-    await userStore.updateUser(user.id, {
-      resetCodeHash: hashCode(code),
-      resetCodeExpiry: getExpiryTimestamp(),
-    });
 
     try {
       await sendPasswordResetEmail(user.email, code);
     } catch (emailErr) {
       console.warn('Failed to send password reset email:', emailErr.message);
+      return res.status(500).json({ error: 'Failed to send reset code. Please try again.' });
     }
 
-    return res.json({
-      message: genericMessage,
-      devCode: !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.startsWith('re_') ? code : undefined,
+    await userStore.updateUser(user.id, {
+      resetCodeHash: hashCode(code),
+      resetCodeExpiry: getExpiryTimestamp(),
     });
+
+    return res.json({ message: genericMessage });
   } catch (err) {
     console.error('forgotPassword error:', err);
     return res.status(500).json({ error: 'Something went wrong requesting a password reset.' });

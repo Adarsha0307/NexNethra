@@ -60,23 +60,26 @@ async function request(url, options = {}) {
       try {
         const newToken = await tryRefresh();
         isRefreshing = false;
-        refreshQueue.forEach(cb => cb(newToken));
+        refreshQueue.forEach(cb => cb({ ok: true, token: newToken }));
         refreshQueue = [];
 
         headers['Authorization'] = `Bearer ${newToken}`;
         res = await fetch(getApiUrl(url), { ...options, headers });
         if (res.ok) return res;
-      } catch {
+      } catch (err) {
         isRefreshing = false;
+        const queue = refreshQueue;
         refreshQueue = [];
+        queue.forEach(cb => cb({ ok: false }));
         clearTokens();
         throw new Error('Session expired. Please log in again.');
       }
     } else {
-      const newToken = await new Promise(resolve => {
+      const result = await new Promise(resolve => {
         refreshQueue.push(resolve);
       });
-      headers['Authorization'] = `Bearer ${newToken}`;
+      if (!result.ok) throw new Error('Session expired. Please log in again.');
+      headers['Authorization'] = `Bearer ${result.token}`;
       res = await fetch(getApiUrl(url), { ...options, headers });
       if (res.ok) return res;
     }
