@@ -326,6 +326,8 @@ export async function deleteAccount(req, res) {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ error: 'Password is incorrect.' });
     await revokeUserTokens(user.id);
+    await query('DELETE FROM activities WHERE user_id = $1', [user.id]);
+    await query('DELETE FROM team_members WHERE invited_by = $1', [user.id]);
     await query('DELETE FROM users WHERE id = $1', [user.id]);
     return res.json({ message: 'Account deleted.' });
   } catch (err) {
