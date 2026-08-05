@@ -1395,3 +1395,75 @@ input[type="password"].input-area:not(textarea) {
   transform: scale(1.1) rotate(5deg) !important;
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.9), 0 0 50px rgba(124, 58, 237, 0.7), 0 0 70px rgba(109, 40, 217, 0.5) !important;
 }
+
+/* === AI Loader (site-load splash) === */
+
+.ai-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #030a12;
+}
+
+.loader-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 2rem;
+}
+
+.loader-letter {
+  display: inline-block;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #abc8ff;
+  animation: loader-letter-anim 2.4s ease-in-out infinite;
+}
+
+.loader {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #030a12;
+  animation: loader-rotate 1.2s ease-in-out infinite;
+}
+
+@keyframes loader-rotate {
+  0% {
+    transform: rotate(90deg);
+    box-shadow: 0 10px 20px 0 #fff inset,
+      0 20px 30px 0 #ad5fff inset,
+      0 60px 60px 0 #471eec inset;
+  }
+  50% {
+    transform: rotate(270deg);
+    box-shadow: 0 10px 20px 0 #fff inset,
+      0 20px 10px 0 #d60a47 inset,
+      0 40px 60px 0 #311e80 inset;
+  }
+  100% {
+    transform: rotate(450deg);
+    box-shadow: 0 10px 20px 0 #fff inset,
+      0 20px 30px 0 #ad5fff inset,
+      0 60px 60px 0 #471eec inset;
+  }
+}
+
+@keyframes loader-letter-anim {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}

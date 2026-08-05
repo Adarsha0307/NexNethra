@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes';
 import AuthPage from './pages/AuthPage';
+import AILoader from './components/ui/ai-loader';
 import { apiGet } from './api/client';
 
 function App() {
@@ -9,6 +10,12 @@ function App() {
     return token ? { token } : null;
   });
   const [checking, setChecking] = useState(!!localStorage.getItem('nexnetra_token'));
+  const [splash, setSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSplash(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!checking) return;
@@ -22,8 +29,8 @@ function App() {
     });
   }, [checking]);
 
-  if (checking) {
-    return <div className="page-stack" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#999' }}>Verifying session...</div>;
+  if (splash || checking) {
+    return <AILoader />;
   }
 
   if (!user) {
