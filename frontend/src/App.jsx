@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes';
 import AuthPage from './pages/AuthPage';
-import AILoader from './components/ui/ai-loader';
+import CubeLoader from './components/ui/cube-loader';
 import { apiGet } from './api/client';
 
 function App() {
@@ -30,7 +30,7 @@ function App() {
   }, [checking]);
 
   if (splash || checking) {
-    return <AILoader />;
+    return <CubeLoader />;
   }
 
   if (!user) {
