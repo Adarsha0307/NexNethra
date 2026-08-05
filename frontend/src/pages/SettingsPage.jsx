@@ -46,7 +46,7 @@ function SettingsPage() {
     { id: 'shortcuts', label: 'Shortcuts' },
     { id: 'health', label: 'Health Checks' },
     { id: 'export', label: 'Export' },
-    { id: 'danger', label: 'Danger Zone' },
+    { id: 'danger', label: 'Account Deletion' },
     { id: 'logout', label: 'Logout' },
   ];
 
@@ -539,7 +539,7 @@ function DangerSection({ fetcher, showMessage, showError }) {
 
   return (
     <div className="panel-card" style={{ padding: '1.75rem', border: '1px solid rgba(255,107,107,0.3)' }}>
-      <h2 style={{ color: '#ff6b6b' }}>Danger Zone</h2>
+      <h2 style={{ color: '#ff6b6b' }}>Account Deletion</h2>
       <p className="page-copy">Irreversible actions. Proceed with caution.</p>
       {deleteError && <div className="alert-error">{deleteError}</div>}
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
