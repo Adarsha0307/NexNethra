@@ -107,7 +107,7 @@ const OTPInputBox = ({
 
   useEffect(() => {
     if (state === 'success') {
-      const transitionX = index * 68;
+      const transitionX = index * 56;
       animationControls.start({
         x: -transitionX,
         transition: slowSuccessTransition,
@@ -171,7 +171,7 @@ const OTPInputBox = ({
 
   return (
     <motion.div
-      className={`w-14 h-16 rounded-lg ring-2 ring-transparent focus-within:shadow-inner overflow-hidden transition-all duration-300 ${
+      className={`w-10 h-12 rounded-lg ring-2 ring-transparent focus-within:shadow-inner overflow-hidden transition-all duration-300 ${
         state === 'error'
           ? 'ring-red-400 dark:ring-red-500'
           : state === 'success'
@@ -191,7 +191,7 @@ const OTPInputBox = ({
         onPaste={onPaste}
         onFocus={onFocus}
         onBlur={onBlur}
-        className="w-full h-full text-center text-3xl font-semibold outline-none caret-gray-900 dark:caret-gray-200 bg-gray-100 dark:bg-black dark:text-white"
+        className="w-full h-full text-center text-2xl font-semibold outline-none caret-gray-900 dark:caret-gray-200 bg-gray-100 dark:bg-black dark:text-white"
         disabled={state === 'success'}
       />
     </motion.div>
@@ -315,7 +315,7 @@ export function OTPVerification({
 
   return (
     <div
-      className="rounded-3xl p-8 w-full max-w-sm min-h-[400px] flex flex-col shadow-lg dark:shadow-gray-900/50 relative overflow-hidden isolate"
+      className="rounded-3xl p-6 w-full max-w-sm min-h-[340px] flex flex-col shadow-lg dark:shadow-gray-900/50 relative overflow-hidden isolate"
       style={{
         backgroundImage:
           'url(https://cdn.21st.dev/assets/localized/16c55696aea9e60fe904ded95cfa9615f3dd5850411f794c155beb28679fd3a4.gif)',
@@ -341,7 +341,7 @@ export function OTPVerification({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               className="flex items-center justify-center"
-              style={{ height: '232px' }}
+              style={{ height: '200px' }}
             >
               <OTPSuccess />
             </motion.div>
@@ -354,7 +354,7 @@ export function OTPVerification({
               transition={{ duration: 0.2 }}
             >
               {/* Description */}
-              <p className="text-center text-gray-600 dark:text-gray-300 mt-2 mb-8">
+              <p className="text-center text-gray-600 dark:text-gray-300 mt-2 mb-6">
                 {email ? (
                   <>
                     We've sent a {length}-digit code to
@@ -366,7 +366,7 @@ export function OTPVerification({
               </p>
 
               {/* OTP Input Area */}
-              <div className="flex flex-col items-center justify-center gap-2 mb-10 relative h-20">
+              <div className="flex flex-col items-center justify-center gap-2 mb-6 relative h-20">
                 <motion.div
                   animate={animationControls}
                   className="flex items-center justify-center gap-4"
