@@ -29,7 +29,7 @@ function SettingsPage() {
     if (method === 'GET') return apiGet(url);
     if (method === 'PUT') return apiPut(url, body ? JSON.parse(body) : undefined);
     if (method === 'POST') return apiPost(url, body ? JSON.parse(body) : undefined);
-    if (method === 'DELETE') return apiDelete(url);
+    if (method === 'DELETE') return apiDelete(url, body ? JSON.parse(body) : undefined);
   }, []);
 
   const sections = [

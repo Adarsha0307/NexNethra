@@ -112,8 +112,11 @@ export async function apiPut(url, body) {
   return data;
 }
 
-export async function apiDelete(url) {
-  const res = await request(url, { method: 'DELETE' });
+export async function apiDelete(url, body) {
+  const res = await request(url, {
+    method: 'DELETE',
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
