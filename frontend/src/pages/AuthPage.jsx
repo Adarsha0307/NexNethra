@@ -4,13 +4,6 @@ import { SignInPage } from '../components/ui/sign-in';
 import CyberBackground from '../components/ui/cyber-background';
 import OTPVerification from '../components/ui/otp-input';
 
-const HERO_IMAGE = '/hero.jpeg';
-
-const testimonials = [
-  
- 
-];
-
 function AuthPage({ onAuth }) {
   const [step, setStep] = useState('login');
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
@@ -354,8 +347,6 @@ function AuthPage({ onAuth }) {
 
   return (
     <SignInPage
-      heroImageSrc={HERO_IMAGE}
-      testimonials={testimonials}
       error={message}
       onSignIn={handleSignIn}
       onResetPassword={() => { setStep('forgot-password'); setMessage(''); setErrors([]); }}
