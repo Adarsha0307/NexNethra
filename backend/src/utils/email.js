@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
@@ -64,9 +65,41 @@ async function sendWithResend({ to, subject, html, text }) {
   return result;
 }
 
+async function sendWithSendgrid({ to, subject, html, text }) {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  const from = process.env.EMAIL_FROM || 'Nexnetra <nexnethra@gmail.com>';
+
+  if (!apiKey) {
+    console.error('[email] SENDGRID_API_KEY is NOT set in environment variables.');
+    throw new Error('SENDGRID_API_KEY is not set in environment variables.');
+  }
+
+  console.log(`[email] Sending via SendGrid to: ${to}`);
+  console.log(`[email] From: ${from}`);
+  console.log(`[email] SENDGRID_API_KEY: ${apiKey ? `${apiKey.slice(0, 6)}...${apiKey.slice(-4)} (loaded)` : 'undefined'}`);
+
+  sgMail.setApiKey(apiKey);
+  const result = await sgMail.send({
+    to,
+    from: { email: 'nexnethra@gmail.com', name: 'Nexnetra' },
+    subject,
+    text,
+    html,
+  });
+
+  const status = result?.[0]?.statusCode;
+  console.log('[email] SendGrid status:', status);
+  console.log('[email] SendGrid result:', JSON.stringify(result));
+
+  return { id: String(status) };
+}
+
 async function sendEmail(payload) {
   if (process.env.EMAIL_PROVIDER === 'gmail') {
     return sendWithGmail(payload);
+  }
+  if (process.env.EMAIL_PROVIDER === 'sendgrid') {
+    return sendWithSendgrid(payload);
   }
   return sendWithResend(payload);
 }
