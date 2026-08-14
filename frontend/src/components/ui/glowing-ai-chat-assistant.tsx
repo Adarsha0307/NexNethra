@@ -68,6 +68,7 @@ const FloatingAiAssistant = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <button
+        aria-label={isChatOpen ? 'Close AI assistant' : 'Open AI assistant'}
         className={`floating-ai-button relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 transform ${
           isChatOpen ? 'rotate-90' : 'rotate-0'
         }`}
