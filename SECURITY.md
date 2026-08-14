@@ -19,7 +19,7 @@ Nexnethra is continuously deployed — the live production versions below are th
 
 To report a vulnerability privately:
 
-1. Email **sid.adarshbu@gmail.com** with the subject `[Nexnethra Security] <short description>`
+1. Email **nexnethra@gmail.com** with the subject `[Nexnethra Security] <short description>`
 2. Include:
    - Affected URL/endpoint and environment (production/local)
    - Steps to reproduce (minimal, concrete)
