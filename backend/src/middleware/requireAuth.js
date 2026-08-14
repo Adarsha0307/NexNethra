@@ -1,15 +1,15 @@
-import jwt from 'jsonwebtoken';
+import { verifyToken } from '../utils/auth.js';
+import { getAccessTokenFromRequest } from '../utils/cookies.js';
 
 export function requireAuth(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = getAccessTokenFromRequest(req);
 
   if (!token) {
     return res.status(401).json({ error: 'Authentication required.' });
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = verifyToken(token);
 
     if (payload.scope === 'mfa_pending') {
       return res.status(401).json({ error: 'MFA verification required.' });

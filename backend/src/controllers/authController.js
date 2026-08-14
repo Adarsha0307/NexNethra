@@ -19,37 +19,36 @@ import {
   verifyToken,
 } from '../utils/totp.js';
 import * as userStore from '../utils/userStore.js';
-import { generateRefreshToken, storeRefreshToken, rotateRefreshToken, revokeUserTokens } from '../utils/refreshTokens.js';
+import { generateRefreshToken, storeRefreshToken, rotateRefreshToken, revokeUserTokens, revokeTokenFamily } from '../utils/refreshTokens.js';
+import { getJwtSecret } from '../utils/auth.js';
+import { setAuthCookies, clearAuthCookies, getRefreshTokenFromRequest } from '../utils/cookies.js';
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_TTL = '15m';
 const MFA_PENDING_TOKEN_TTL = '5m';
 
-function getJwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is not set.');
-  }
-  return secret;
-}
-
 function signAccessToken(userId, email) {
   return jwt.sign({ userId, email }, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL });
 }
 
-async function issueTokens(userId, email) {
+async function issueTokens(res, userId, email) {
   const accessToken = signAccessToken(userId, email);
   const refreshToken = generateRefreshToken();
   const familyId = crypto.randomUUID();
   await storeRefreshToken(userId, refreshToken, familyId);
-  return { accessToken, refreshToken };
+  setAuthCookies(res, { accessToken, refreshToken });
+  return { accessToken };
+}
+
+function assertString(value, field) {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 export async function register(req, res) {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    if (!firstName || !lastName || !email || !password) {
+    if (!assertString(firstName) || !assertString(lastName) || !assertString(email) || !assertString(password)) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
 
@@ -194,7 +193,7 @@ export async function resendVerificationCode(req, res) {
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    if (!assertString(email, 'email') || !assertString(password, 'password')) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
@@ -220,8 +219,8 @@ export async function login(req, res) {
       return res.json({ mfaRequired: true, pendingToken });
     }
 
-    const tokens = await issueTokens(user.id, user.email);
-    return res.json(tokens);
+    await issueTokens(res, user.id, user.email);
+    return res.json({ message: 'Logged in.' });
   } catch (err) {
     console.error('login error:', err);
     return res.status(500).json({ error: 'Something went wrong during login.' });
@@ -256,8 +255,8 @@ export async function verifyLoginMfa(req, res) {
       return res.status(401).json({ error: 'Incorrect authentication code.' });
     }
 
-    const tokens = await issueTokens(user.id, user.email);
-    return res.json(tokens);
+    await issueTokens(res, user.id, user.email);
+    return res.json({ message: 'Logged in.' });
   } catch (err) {
     console.error('verifyLoginMfa error:', err);
     return res.status(500).json({ error: 'Something went wrong verifying MFA.' });
@@ -266,7 +265,7 @@ export async function verifyLoginMfa(req, res) {
 
 export async function refreshToken(req, res) {
   try {
-    const { refreshToken: rawToken } = req.body;
+    const rawToken = getRefreshTokenFromRequest(req);
     if (!rawToken || typeof rawToken !== 'string') {
       return res.status(400).json({ error: 'refreshToken is required.' });
     }
@@ -274,23 +273,28 @@ export async function refreshToken(req, res) {
     const result = await rotateRefreshToken(rawToken);
 
     if (result.error === 'INVALID_TOKEN') {
+      clearAuthCookies(res);
       return res.status(401).json({ error: 'Invalid refresh token.' });
     }
     if (result.error === 'EXPIRED') {
+      clearAuthCookies(res);
       return res.status(401).json({ error: 'Refresh token has expired. Please log in again.' });
     }
     if (result.error === 'THEFT_DETECTED') {
+      clearAuthCookies(res);
       console.warn('[SECURITY] Refresh token reuse detected — all tokens revoked for user.');
       return res.status(401).json({ error: 'Session revoked due to suspicious activity. Please log in again.' });
     }
 
     const user = await userStore.findUserById(result.userId);
     if (!user) {
+      clearAuthCookies(res);
       return res.status(401).json({ error: 'User not found.' });
     }
 
     const accessToken = signAccessToken(user.id, user.email);
-    return res.json({ accessToken, refreshToken: result.token });
+    setAuthCookies(res, { accessToken, refreshToken: result.token });
+    return res.json({ message: 'Tokens refreshed.' });
   } catch (err) {
     console.error('refreshToken error:', err);
     return res.status(500).json({ error: 'Something went wrong refreshing the token.' });
@@ -299,13 +303,18 @@ export async function refreshToken(req, res) {
 
 export async function logout(req, res) {
   try {
-    const userId = req.user?.userId;
-    if (userId) {
-      await revokeUserTokens(userId);
+    // Prefer revoking via the refresh cookie; fall back to the session user.
+    const rawToken = getRefreshTokenFromRequest(req);
+    if (rawToken && typeof rawToken === 'string') {
+      await revokeTokenFamily(rawToken);
+    } else if (req.user?.userId) {
+      await revokeUserTokens(req.user.userId);
     }
+    clearAuthCookies(res);
     return res.json({ message: 'Logged out.' });
   } catch (err) {
     console.error('logout error:', err);
+    clearAuthCookies(res);
     return res.status(500).json({ error: 'Something went wrong during logout.' });
   }
 }

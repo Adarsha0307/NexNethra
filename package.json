@@ -14,7 +14,7 @@
     "migrate": "node backend/src/utils/migrate.js",
     "build": "npm run build --workspace frontend && rm -rf dist && cp -r frontend/dist dist",
     "start": "npm run start --workspace backend",
-    "test": "echo \"No tests configured yet\" && exit 0"
+    "test": "npm run test --workspace backend && npm run test --workspace frontend"
   },
   "dependencies": {
     "clsx": "^2.1.1",

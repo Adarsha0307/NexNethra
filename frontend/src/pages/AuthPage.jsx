@@ -16,6 +16,17 @@ function AuthPage({ onAuth }) {
   const [resetEmail, setResetEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const submitOtp = async (endpoint, payload) => {
+    const res = await fetch(getApiUrl(endpoint), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  };
+
   async function handleRegister(event) {
     event.preventDefault();
     setMessage('');
@@ -23,6 +34,7 @@ function AuthPage({ onAuth }) {
 
     const res = await fetch(getApiUrl('/api/auth/register'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
@@ -37,35 +49,10 @@ function AuthPage({ onAuth }) {
     }
   }
 
-  async function handleVerifyEmail(event) {
-    event.preventDefault();
+  async function verifyEmailCode(otpCode) {
     setMessage('');
-
-    const res = await fetch(getApiUrl('/api/auth/verify-email'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, code }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      setMessage('Email verified! You can now sign in.');
-      setStep('login');
-    } else {
-      setMessage(data.error);
-    }
-  }
-
-  async function handleVerifyEmailCode(otpCode) {
-    setMessage('');
-    const res = await fetch(getApiUrl('/api/auth/verify-email'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, code: otpCode }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
+    const { ok, data } = await submitOtp('/api/auth/verify-email', { userId, code: otpCode });
+    if (ok) {
       setMessage('Email verified! You can now sign in.');
       setStep('login');
       return true;
@@ -76,13 +63,12 @@ function AuthPage({ onAuth }) {
 
   async function handleResendCode() {
     setMessage('');
-
     const res = await fetch(getApiUrl('/api/auth/resend-code'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
     });
-
     const data = await res.json();
     setMessage(data.message || data.error);
   }
@@ -100,6 +86,7 @@ function AuthPage({ onAuth }) {
 
     const res = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
@@ -110,9 +97,7 @@ function AuthPage({ onAuth }) {
         setPendingToken(data.pendingToken);
         setStep('mfa-code');
       } else {
-        localStorage.setItem('nexnetra_token', data.accessToken);
-        if (data.refreshToken) localStorage.setItem('nexnetra_refresh', data.refreshToken);
-        onAuth({ token: data.accessToken });
+        onAuth({});
       }
     } else if (res.status === 403 && data.userId) {
       setUserId(data.userId);
@@ -123,63 +108,15 @@ function AuthPage({ onAuth }) {
     }
   }
 
-  async function handleMfaVerify(event) {
-    event.preventDefault();
+  async function verifyMfaCode(otpCode) {
     setMessage('');
-
-    const res = await fetch(getApiUrl('/api/auth/login/verify-mfa'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pendingToken, code: mfaCode }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('nexnetra_token', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('nexnetra_refresh', data.refreshToken);
-      onAuth({ token: data.accessToken });
-    } else {
-      setMessage(data.error);
-    }
-  }
-
-  async function handleMfaVerifyCode(otpCode) {
-    setMessage('');
-
-    const res = await fetch(getApiUrl('/api/auth/login/verify-mfa'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pendingToken, code: otpCode }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('nexnetra_token', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('nexnetra_refresh', data.refreshToken);
-      onAuth({ token: data.accessToken });
+    const { ok, data } = await submitOtp('/api/auth/login/verify-mfa', { pendingToken, code: otpCode });
+    if (ok) {
+      onAuth({});
       return true;
     }
     setMessage(data.error);
     return false;
-  }
-
-  async function handleGoogleSignIn() {
-    setMessage('Attempting demo login...');
-
-    const res = await fetch(getApiUrl('/api/auth/login'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: form.email || 'demo@test.com', password: form.password || 'DemoPass123!' }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('nexnetra_token', data.accessToken);
-      if (data.refreshToken) localStorage.setItem('nexnetra_refresh', data.refreshToken);
-      onAuth({ token: data.accessToken });
-    } else {
-      setMessage(data.error || 'Google OAuth is not configured. Use email/password to sign in.');
-    }
   }
 
   async function handleForgotPassword(event) {
@@ -192,6 +129,7 @@ function AuthPage({ onAuth }) {
 
     const res = await fetch(getApiUrl('/api/auth/forgot-password'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
@@ -213,6 +151,7 @@ function AuthPage({ onAuth }) {
 
     const res = await fetch(getApiUrl('/api/auth/reset-password'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: resetEmail, code, password }),
     });
@@ -266,7 +205,7 @@ function AuthPage({ onAuth }) {
             length={6}
             email={form.email}
             title="Verify your email"
-            verifyOTP={handleVerifyEmailCode}
+            verifyOTP={verifyEmailCode}
             onResend={handleResendCode}
           />
         </div>
@@ -283,7 +222,7 @@ function AuthPage({ onAuth }) {
           <OTPVerification
             length={6}
             title="Two-factor authentication"
-            verifyOTP={handleMfaVerifyCode}
+            verifyOTP={verifyMfaCode}
           />
         </div>
       </div>

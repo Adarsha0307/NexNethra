@@ -3,68 +3,56 @@ import { getApiUrl } from '../api.js';
 let isRefreshing = false;
 let refreshQueue = [];
 
-function getTokens() {
-  return {
-    accessToken: localStorage.getItem('nexnetra_token'),
-    refreshToken: localStorage.getItem('nexnetra_refresh'),
-  };
-}
-
-function setTokens(accessToken, refreshToken) {
-  localStorage.setItem('nexnetra_token', accessToken);
-  if (refreshToken) localStorage.setItem('nexnetra_refresh', refreshToken);
-}
-
+// Tokens live in HttpOnly cookies (set server-side); the client only
+// proves its session by sending cookies with `credentials: 'include'`.
 function clearTokens() {
-  localStorage.removeItem('nexnetra_token');
-  localStorage.removeItem('nexnetra_refresh');
-  window.location.hash = '#/login';
-  window.location.reload();
+  fetch(getApiUrl('/api/auth/logout'), {
+    method: 'POST',
+    credentials: 'include',
+  }).catch(() => {});
+  try {
+    const url = new URL(window.location.href);
+    url.hash = '#/login';
+    window.location.replace(url);
+  } catch (err) {
+    window.location.reload();
+  }
 }
 
 async function tryRefresh() {
-  const { refreshToken } = getTokens();
-  if (!refreshToken) throw new Error('No refresh token');
-
   const res = await fetch(getApiUrl('/api/auth/refresh'), {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify({}),
   });
 
   if (!res.ok) throw new Error('Refresh failed');
-  const data = await res.json();
-  setTokens(data.accessToken, data.refreshToken);
-  return data.accessToken;
+  return true;
 }
 
 async function request(url, options = {}) {
-  const { accessToken } = getTokens();
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
 
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
-  }
-
   let res = await fetch(getApiUrl(url), {
     ...options,
+    credentials: 'include',
     headers,
   });
 
-  if (res.status === 401 && accessToken) {
+  if (res.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        const newToken = await tryRefresh();
+        await tryRefresh();
         isRefreshing = false;
-        refreshQueue.forEach(cb => cb({ ok: true, token: newToken }));
+        refreshQueue.forEach(cb => cb({ ok: true }));
         refreshQueue = [];
 
-        headers['Authorization'] = `Bearer ${newToken}`;
-        res = await fetch(getApiUrl(url), { ...options, headers });
+        res = await fetch(getApiUrl(url), { ...options, credentials: 'include', headers });
         if (res.ok) return res;
       } catch (err) {
         isRefreshing = false;
@@ -79,8 +67,7 @@ async function request(url, options = {}) {
         refreshQueue.push(resolve);
       });
       if (!result.ok) throw new Error('Session expired. Please log in again.');
-      headers['Authorization'] = `Bearer ${result.token}`;
-      res = await fetch(getApiUrl(url), { ...options, headers });
+      res = await fetch(getApiUrl(url), { ...options, credentials: 'include', headers });
       if (res.ok) return res;
     }
   }

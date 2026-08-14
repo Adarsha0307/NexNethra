@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import AppRoutes from './routes/AppRoutes';
 import AuthPage from './pages/AuthPage';
 import CubeLoader from './components/ui/cube-loader';
-import { apiGet } from './api/client';
+import { getApiUrl } from './api';
+
+function checkSession() {
+  // Plain fetch with cookies (no refresh/redirect logic) — just answers
+  // "is there a valid access cookie?".
+  return fetch(getApiUrl('/api/profile'), { credentials: 'include' })
+    .then(res => res.ok)
+    .catch(() => false);
+}
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const token = localStorage.getItem('nexnetra_token');
-    return token ? { token } : null;
-  });
-  const [checking, setChecking] = useState(!!localStorage.getItem('nexnetra_token'));
+  const [user, setUser] = useState(null);
+  const [checking, setChecking] = useState(true);
   const [splash, setSplash] = useState(true);
 
   useEffect(() => {
@@ -18,16 +23,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!checking) return;
-    apiGet('/api/profile').then(() => {
-      setChecking(false);
-    }).catch(() => {
-      localStorage.removeItem('nexnetra_token');
-      localStorage.removeItem('nexnetra_refresh');
-      setUser(null);
+    checkSession().then(ok => {
+      setUser(ok ? {} : null);
       setChecking(false);
     });
-  }, [checking]);
+  }, []);
 
   if (splash || checking) {
     return <CubeLoader />;

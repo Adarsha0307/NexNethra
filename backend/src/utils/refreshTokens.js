@@ -57,3 +57,13 @@ export async function revokeUserTokens(userId) {
   await query('UPDATE refresh_tokens SET revoked_at = $1 WHERE user_id = $2 AND revoked_at IS NULL',
     [new Date().toISOString(), userId]);
 }
+
+// Revoke the family of one refresh token (used by logout). No-op if unknown.
+export async function revokeTokenFamily(rawToken) {
+  const tokenHash = hashToken(rawToken);
+  const { rows } = await query('SELECT user_id FROM refresh_tokens WHERE token_hash = $1', [tokenHash]);
+  if (rows.length === 0) return false;
+  await query('UPDATE refresh_tokens SET revoked_at = $1 WHERE user_id = $2 AND revoked_at IS NULL',
+    [new Date().toISOString(), rows[0].user_id]);
+  return true;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiGet, apiPost, apiPut, apiDelete } from '../api/client';
+import { getApiUrl } from '../api';
 
 function SettingsPage() {
   const navigate = useNavigate();
@@ -10,8 +11,10 @@ function SettingsPage() {
   const [loading, setLoading] = useState({});
 
   function handleLogout() {
-    localStorage.removeItem('nexnetra_token');
-    localStorage.removeItem('nexnetra_refresh');
+    fetch(getApiUrl('/api/auth/logout'), {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {});
     navigate('/dashboard');
     window.location.reload();
   }

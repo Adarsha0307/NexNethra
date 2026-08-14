@@ -23,7 +23,8 @@ router.post('/mfa/setup', requireAuth, authController.startMfaSetup);
 router.post('/mfa/confirm', requireAuth, authController.confirmMfaSetup);
 router.post('/mfa/disable', requireAuth, authController.disableMfa);
 router.post('/refresh', refreshLimiter, authController.refreshToken);
-router.post('/logout', requireAuth, authController.logout);
+// Logout must not require a valid token — expired sessions still need cookie cleanup.
+router.post('/logout', authController.logout);
 router.post('/forgot-password', forgotPasswordLimiter, authController.forgotPassword);
 router.post('/reset-password', resetPasswordLimiter, authController.resetPassword);
 
